@@ -19,7 +19,6 @@ interface FormStore : Store<Intent, State, Label> {
         val id: String? = null,
         // TODO
         val isLoading: Boolean = false,
-        val isEditMode: Boolean = false,
         val errorMessage: String? = null,
     )
     

@@ -4,16 +4,20 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.fungorn.trainingcapacity.core.data.local.dto.TrainingEntriesDto
+import com.fungorn.trainingcapacity.core.data.local.dto.TrainingEntryDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
-class LocalDataSource(
+class TrainingEntriesLocalDataSource(
     private val dataStore: DataStore<Preferences>
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     
     companion object {
+        private val MESOCYCLES_KEY = stringPreferencesKey("training_mesocycles")
+        private val PROGRAMS_KEY = stringPreferencesKey("training_programs")
         private val ENTRIES_KEY = stringPreferencesKey("training_entries")
     }
     

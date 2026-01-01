@@ -35,7 +35,7 @@ fun FormContent(component: FormComponent) {
         topBar = {
             TopAppBar(
                 title = { 
-                    Text(if (state.isEditMode) "Edit Entry" else "New Entry") 
+                    Text("New Entry")
                 },
                 navigationIcon = {
                     IconButton(onClick = { component.onBackClick() }) {
@@ -45,7 +45,7 @@ fun FormContent(component: FormComponent) {
             )
         }
     ) { paddingValues ->
-        if (state.isLoading && state.isEditMode) {
+        if (state.isLoading) {
             LoadingIndicator()
         } else {
             Column(
@@ -74,7 +74,7 @@ fun FormContent(component: FormComponent) {
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !state.isLoading
                 ) {
-                    Text(if (state.isEditMode) "Update" else "Save")
+                    Text( "Save")
                 }
             }
         }

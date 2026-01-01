@@ -7,12 +7,13 @@ interface DashboardComponent {
     
     val state: StateFlow<DashboardStore.State>
     
+    fun onMesocycleClick()
+    fun onProgramClick()
     fun onAddClick()
-    fun onEntryClick(id: String)
-    fun onDeleteClick(id: String)
-    
+
     sealed interface Output {
+        data object NavigateToMesocycles : Output
+        data object NavigateToPrograms : Output
         data object NavigateToForm : Output
-        data class NavigateToEdit(val id: String) : Output
     }
 }

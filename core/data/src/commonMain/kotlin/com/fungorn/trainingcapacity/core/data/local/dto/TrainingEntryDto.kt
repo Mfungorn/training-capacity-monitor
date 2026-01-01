@@ -1,4 +1,4 @@
-package com.fungorn.trainingcapacity.core.data.local
+package com.fungorn.trainingcapacity.core.data.local.dto
 
 import kotlinx.serialization.Serializable
 
@@ -6,11 +6,9 @@ import kotlinx.serialization.Serializable
 data class TrainingEntryDto(
     val id: String,
     val code: String,
-    val weekNumber: Int,
-    val maximumCapacitySets: Int,
+    val spentMaximumCapacitySets: Int,
     val overallDifficulty: Int,
     val createdAt: Long,
-    val updatedAt: Long
 )
 
 @Serializable

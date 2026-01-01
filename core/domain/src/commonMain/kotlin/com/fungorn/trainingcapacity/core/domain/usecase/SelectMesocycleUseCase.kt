@@ -2,8 +2,8 @@ package com.fungorn.trainingcapacity.core.domain.usecase
 
 import com.fungorn.trainingcapacity.core.domain.repository.TrainingRepository
 
-class DeleteEntryUseCase(
+class SelectMesocycleUseCase(
     private val repository: TrainingRepository
 ) {
-    suspend operator fun invoke(id: String) = repository.deleteEntry(id)
+    suspend operator fun invoke(mesocycleId: String) = repository.selectCycle(mesocycleId)
 }

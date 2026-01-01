@@ -1,17 +1,17 @@
 package com.fungorn.trainingcapacity.feature.dashboard
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
@@ -23,32 +23,41 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.fungorn.trainingcapacity.core.domain.model.TrainingEntry
 import com.fungorn.trainingcapacity.core.ui.components.LoadingIndicator
 import com.fungorn.trainingcapacity.feature.dashboard.component.DashboardComponent
+import com.fungorn.trainingcapacity.feature.dashboard.graph.DashboardDifficultyGraph
+import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardContent(component: DashboardComponent) {
     val state by component.state.collectAsState()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Training Capacity") }
+                title = { Text("Training Capacity") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { component.onAddClick() }
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Entry")
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Entry"
+                )
             }
         }
     ) { paddingValues ->
@@ -59,11 +68,9 @@ fun DashboardContent(component: DashboardComponent) {
         ) {
             when {
                 state.isLoading -> LoadingIndicator()
-                state.entries.isEmpty() -> EmptyState()
-                else -> EntriesList(
-                    entries = state.entries,
-                    onDeleteClick = { component.onDeleteClick(it) },
-                    onItemClick = { component.onEntryClick(it) }
+                else -> DashboardContent(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
                 )
             }
         }
@@ -71,66 +78,139 @@ fun DashboardContent(component: DashboardComponent) {
 }
 
 @Composable
-private fun EmptyState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "No entries yet",
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Tap + to add your first training entry",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun EntriesList(
-    entries: List<TrainingEntry>,
-    onDeleteClick: (String) -> Unit,
-    onItemClick: (String) -> Unit
+private fun DashboardContent(
+    state: DashboardStore.State,
+    modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(entries, key = { it.id }) { entry ->
-            EntryCard(
-                entry = entry,
-                onDeleteClick = { onDeleteClick(entry.id) },
-                onClick = { onItemClick(entry.id) }
+    Column(
+        modifier = modifier
+            .padding(horizontal = 24.dp)
+            .verticalScroll(
+                state = rememberScrollState()
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EntryCard(
-    entry: TrainingEntry,
-    onDeleteClick: () -> Unit,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Current training mesocycle: ${state.currentMesocycleName}",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(12.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            // TODO
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = "${state.currentMesocycleWeekNumber} / ${state.totalMesocycleWeeksCount}",
+                subtitle = "Mesocycle weeks",
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = state.currentMesocycleWeekCapacityRange,
+                subtitle = "Current week RIR range",
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = state.totalMesocycleMaximumCapacitySets.toString(),
+                subtitle = "RIRs bank",
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Current training program",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = state.currentProgramName,
+                subtitle = "Current program",
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = "${state.currentTrainingDayNumber} / ${state.totalTrainingDaysCount}",
+                subtitle = "Training day",
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = "${state.spentMaximumCapacitySetsThisWeek} / ${state.totalMaximumCapacitySetsThisWeek}",
+                subtitle = "Current week max RIRs",
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Overall difficulty",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        if (state.graphData.entries.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    modifier = Modifier.padding(24.dp),
+                    text = "No difficulty data",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
+            DashboardDifficultyGraph(
+                modifier = Modifier.fillMaxWidth(),
+                barData = state.graphData
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun DashboardDataCard(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(96.dp)
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

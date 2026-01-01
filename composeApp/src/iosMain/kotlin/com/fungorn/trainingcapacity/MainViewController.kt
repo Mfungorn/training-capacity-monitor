@@ -6,7 +6,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.fungorn.trainingcapacity.core.domain.repository.TrainingRepository
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
-import com.fungorn.trainingcapacity.core.domain.usecase.DeleteEntryUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetActiveMesocycleUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetAllEntriesUseCase
 import com.fungorn.trainingcapacity.di.appModule
 import com.fungorn.trainingcapacity.di.createDataStore
@@ -26,8 +26,8 @@ private val lifecycle = LifecycleRegistry()
 private val rootComponent = DefaultRootComponent(
     componentContext = DefaultComponentContext(lifecycle = lifecycle),
     storeFactory = koin.get<StoreFactory>(),
+    getActiveMesocycleUseCase = koin.get<GetActiveMesocycleUseCase>(),
     getAllEntriesUseCase = koin.get<GetAllEntriesUseCase>(),
-    deleteEntryUseCase = koin.get<DeleteEntryUseCase>(),
     addEntryUseCase = koin.get<AddEntryUseCase>(),
     repository = koin.get<TrainingRepository>()
 )

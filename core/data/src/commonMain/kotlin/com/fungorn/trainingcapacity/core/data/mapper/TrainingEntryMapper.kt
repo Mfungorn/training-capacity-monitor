@@ -1,6 +1,6 @@
 package com.fungorn.trainingcapacity.core.data.mapper
 
-import com.fungorn.trainingcapacity.core.data.local.TrainingEntryDto
+import com.fungorn.trainingcapacity.core.data.local.dto.TrainingEntryDto
 import com.fungorn.trainingcapacity.core.domain.model.TrainingEntry
 import com.fungorn.trainingcapacity.core.domain.model.TrainingProgram
 
@@ -9,23 +9,22 @@ fun TrainingEntryDto.toDomain(): TrainingEntry = TrainingEntry(
     program = trainingProgram,
     trainingDayNumber = trainingDayNumber,
     weekNumber = weekNumber,
-    maximumCapacitySets = maximumCapacitySets,
+    spentMaximumCapacitySets = spentMaximumCapacitySets,
     overallDifficulty = overallDifficulty,
     createdAt = createdAt,
-    updatedAt = updatedAt
 )
 
 fun TrainingEntry.toDto(): TrainingEntryDto = TrainingEntryDto(
     id = id,
     code = buildTrainingCode(),
-    weekNumber = weekNumber,
-    maximumCapacitySets = maximumCapacitySets,
+    spentMaximumCapacitySets = spentMaximumCapacitySets,
     overallDifficulty = overallDifficulty,
     createdAt = createdAt,
-    updatedAt = updatedAt
 )
 
-private fun TrainingEntry.buildTrainingCode(): String = program.code + "_" + trainingDayNumber
+private fun TrainingEntry.buildTrainingCode(): String = program.code +
+        "_" + trainingDayNumber +
+        "_" + weekNumber
 
 private val TrainingEntryDto.trainingProgram: TrainingProgram
     get() = when {
@@ -34,4 +33,7 @@ private val TrainingEntryDto.trainingProgram: TrainingProgram
     }
 
 private val TrainingEntryDto.trainingDayNumber: Int
+    get() = code.split("_").drop(1).firstOrNull()?.toIntOrNull() ?: 0
+
+private val TrainingEntryDto.weekNumber: Int
     get() = code.substringAfterLast("_").toIntOrNull() ?: 0

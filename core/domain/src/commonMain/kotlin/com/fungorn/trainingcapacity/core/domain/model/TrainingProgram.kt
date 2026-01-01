@@ -6,7 +6,7 @@ sealed class TrainingProgram(
 ) {
     data object Deload : TrainingProgram(
         code = "DL0",
-        trainingDaysCount = 2
+        trainingDaysCount = 1
     )
 
     data object UpperLower : TrainingProgram(

@@ -94,7 +94,6 @@ class FormStoreFactory(
                 is Msg.EntryLoaded -> copy(
                     id = msg.id,
                     isLoading = false,
-                    isEditMode = true
                 )
                 // TODO
                 is Msg.SetErrorMessage -> copy(errorMessage = msg.error)
