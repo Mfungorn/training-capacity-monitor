@@ -1,27 +1,24 @@
-package com.fungorn.trainingcapacity.feature.form.store
+package com.fungorn.trainingcapacity.feature.form.presentation.store
 
 import com.arkivanov.mvikotlin.core.store.Reducer
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import com.fungorn.trainingcapacity.core.domain.repository.TrainingRepository
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
-import com.fungorn.trainingcapacity.feature.form.store.FormStore.Intent
-import com.fungorn.trainingcapacity.feature.form.store.FormStore.Label
-import com.fungorn.trainingcapacity.feature.form.store.FormStore.State
+import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 class FormStoreFactory(
     private val storeFactory: StoreFactory,
     private val addEntryUseCase: AddEntryUseCase,
-    private val repository: TrainingRepository
+    private val getEntryByIdUseCase: GetEntryByIdUseCase
 ) {
 
     fun create(entryId: String? = null): FormStore =
-        object : FormStore, Store<Intent, State, Label> by storeFactory.create(
+        object : FormStore, Store<FormStore.Intent, FormStore.State, FormStore.Label> by storeFactory.create(
             name = "FormStore",
-            initialState = State(),
+            initialState = FormStore.State(),
             executorFactory = { ExecutorImpl(entryId) },
             reducer = ReducerImpl
         ) {}
@@ -41,15 +38,15 @@ class FormStoreFactory(
 
     private inner class ExecutorImpl(
         private val entryId: String?
-    ) : CoroutineExecutor<Intent, Nothing, State, Msg, Label>() {
+    ) : CoroutineExecutor<FormStore.Intent, Nothing, FormStore.State, Msg, FormStore.Label>() {
 
         override fun executeAction(action: Nothing) {}
 
-        override fun executeIntent(intent: Intent) {
+        override fun executeIntent(intent: FormStore.Intent) {
             when (intent) {
-                is Intent.LoadEntry -> loadEntry(intent.id)
+                is FormStore.Intent.LoadEntry -> loadEntry(intent.id)
                 // TODO
-                is Intent.SaveEntry -> saveEntry()
+                is FormStore.Intent.SaveEntry -> saveEntry()
             }
         }
 
@@ -57,7 +54,7 @@ class FormStoreFactory(
             scope.launch {
                 dispatch(Msg.StartLoading)
                 try {
-                    val entry = repository.getEntryById(id).firstOrNull()
+                    val entry = getEntryByIdUseCase(id).firstOrNull()
                     if (entry != null) {
                         dispatch(
                             Msg.EntryLoaded(
@@ -67,11 +64,11 @@ class FormStoreFactory(
                         )
                     } else {
                         dispatch(Msg.StopLoading)
-                        publish(Label.ShowError("Entry not found"))
+                        publish(FormStore.Label.ShowError("Entry not found"))
                     }
                 } catch (e: Exception) {
                     dispatch(Msg.StopLoading)
-                    publish(Label.ShowError(e.message ?: "Failed to load entry"))
+                    publish(FormStore.Label.ShowError(e.message ?: "Failed to load entry"))
                 }
             }
         }
@@ -86,8 +83,8 @@ class FormStoreFactory(
         }
     }
 
-    private object ReducerImpl : Reducer<State, Msg> {
-        override fun State.reduce(msg: Msg): State =
+    private object ReducerImpl : Reducer<FormStore.State, Msg> {
+        override fun FormStore.State.reduce(msg: Msg): FormStore.State =
             when (msg) {
                 is Msg.StartLoading -> copy(isLoading = true)
                 is Msg.StopLoading -> copy(isLoading = false)

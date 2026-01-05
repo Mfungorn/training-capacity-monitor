@@ -39,7 +39,6 @@ kotlin {
             implementation(libs.mvikotlin.extensions.coroutines)
             implementation(libs.essenty.lifecycle)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

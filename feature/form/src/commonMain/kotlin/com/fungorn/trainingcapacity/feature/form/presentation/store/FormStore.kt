@@ -1,9 +1,9 @@
-package com.fungorn.trainingcapacity.feature.form.store
+package com.fungorn.trainingcapacity.feature.form.presentation.store
 
 import com.arkivanov.mvikotlin.core.store.Store
-import com.fungorn.trainingcapacity.feature.form.store.FormStore.Intent
-import com.fungorn.trainingcapacity.feature.form.store.FormStore.Label
-import com.fungorn.trainingcapacity.feature.form.store.FormStore.State
+import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStore.Intent
+import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStore.Label
+import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStore.State
 
 interface FormStore : Store<Intent, State, Label> {
     

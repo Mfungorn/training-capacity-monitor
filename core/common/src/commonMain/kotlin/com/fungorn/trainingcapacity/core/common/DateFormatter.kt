@@ -1,4 +1,4 @@
-package com.fungorn.trainingcapacity.core.ui
+package com.fungorn.trainingcapacity.core.common
 
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number

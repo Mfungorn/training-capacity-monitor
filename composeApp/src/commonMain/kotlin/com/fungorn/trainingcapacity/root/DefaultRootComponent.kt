@@ -8,14 +8,13 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.fungorn.trainingcapacity.core.domain.repository.TrainingRepository
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
-import com.fungorn.trainingcapacity.core.domain.usecase.GetActiveMesocycleUseCase
-import com.fungorn.trainingcapacity.core.domain.usecase.GetAllEntriesUseCase
-import com.fungorn.trainingcapacity.feature.dashboard.component.DashboardComponent
-import com.fungorn.trainingcapacity.feature.dashboard.component.DefaultDashboardComponent
-import com.fungorn.trainingcapacity.feature.form.component.DefaultFormComponent
-import com.fungorn.trainingcapacity.feature.form.component.FormComponent
+import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
+import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.component.DashboardComponent
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.component.DefaultDashboardComponent
+import com.fungorn.trainingcapacity.feature.form.presentation.component.DefaultFormComponent
+import com.fungorn.trainingcapacity.feature.form.presentation.component.FormComponent
 import com.fungorn.trainingcapacity.root.DefaultRootComponent.Config.Form
 import kotlinx.serialization.Serializable
 
@@ -23,10 +22,9 @@ import kotlinx.serialization.Serializable
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val storeFactory: StoreFactory,
-    private val getActiveMesocycleUseCase: GetActiveMesocycleUseCase,
-    private val getAllEntriesUseCase: GetAllEntriesUseCase,
+    private val getDashboardDataUseCase: GetDashboardDataUseCase,
     private val addEntryUseCase: AddEntryUseCase,
-    private val repository: TrainingRepository
+    private val getEntryByIdUseCase: GetEntryByIdUseCase
 ) : RootComponent, ComponentContext by componentContext {
 
     private val navigation = StackNavigation<Config>()
@@ -58,8 +56,7 @@ class DefaultRootComponent(
         DefaultDashboardComponent(
             componentContext = componentContext,
             storeFactory = storeFactory,
-            getActiveMesocycleUseCase = getActiveMesocycleUseCase,
-            getAllEntriesUseCase = getAllEntriesUseCase,
+            getDashboardDataUseCase = getDashboardDataUseCase,
             onOutput = ::onDashboardOutput
         )
 
@@ -71,7 +68,7 @@ class DefaultRootComponent(
             componentContext = componentContext,
             storeFactory = storeFactory,
             addEntryUseCase = addEntryUseCase,
-            repository = repository,
+            getEntryByIdUseCase = getEntryByIdUseCase,
             entryId = entryId,
             onOutput = ::onFormOutput
         )

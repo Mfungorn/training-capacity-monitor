@@ -1,4 +1,4 @@
-package com.fungorn.trainingcapacity.feature.form
+package com.fungorn.trainingcapacity.feature.form.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fungorn.trainingcapacity.core.ui.components.LoadingIndicator
-import com.fungorn.trainingcapacity.feature.form.component.FormComponent
+import com.fungorn.trainingcapacity.feature.form.presentation.component.FormComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

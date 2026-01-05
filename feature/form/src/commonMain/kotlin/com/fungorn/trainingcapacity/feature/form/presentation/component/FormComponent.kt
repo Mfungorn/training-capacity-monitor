@@ -1,6 +1,6 @@
-package com.fungorn.trainingcapacity.feature.form.component
+package com.fungorn.trainingcapacity.feature.form.presentation.component
 
-import com.fungorn.trainingcapacity.feature.form.store.FormStore
+import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStore
 import kotlinx.coroutines.flow.StateFlow
 
 interface FormComponent {

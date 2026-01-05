@@ -1,6 +1,6 @@
-package com.fungorn.trainingcapacity.feature.dashboard.component
+package com.fungorn.trainingcapacity.feature.dashboard.presentation.component
 
-import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStore
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore
 import kotlinx.coroutines.flow.StateFlow
 
 interface DashboardComponent {

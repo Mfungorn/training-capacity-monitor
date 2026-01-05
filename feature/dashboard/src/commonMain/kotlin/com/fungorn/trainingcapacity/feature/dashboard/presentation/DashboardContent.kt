@@ -1,4 +1,4 @@
-package com.fungorn.trainingcapacity.feature.dashboard
+package com.fungorn.trainingcapacity.feature.dashboard.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,9 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fungorn.trainingcapacity.core.ui.components.LoadingIndicator
-import com.fungorn.trainingcapacity.feature.dashboard.component.DashboardComponent
-import com.fungorn.trainingcapacity.feature.dashboard.graph.DashboardDifficultyGraph
-import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStore
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.component.DashboardComponent
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.graph.DashboardDifficultyGraph
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

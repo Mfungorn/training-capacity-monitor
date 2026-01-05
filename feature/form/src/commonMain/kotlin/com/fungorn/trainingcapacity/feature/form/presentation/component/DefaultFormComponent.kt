@@ -1,4 +1,4 @@
-package com.fungorn.trainingcapacity.feature.form.component
+package com.fungorn.trainingcapacity.feature.form.presentation.component
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.doOnDestroy
@@ -6,10 +6,10 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import com.fungorn.trainingcapacity.core.domain.repository.TrainingRepository
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
-import com.fungorn.trainingcapacity.feature.form.store.FormStore
-import com.fungorn.trainingcapacity.feature.form.store.FormStoreFactory
+import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
+import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStore
+import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStoreFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,7 +23,7 @@ class DefaultFormComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     addEntryUseCase: AddEntryUseCase,
-    repository: TrainingRepository,
+    getEntryByIdUseCase: GetEntryByIdUseCase,
     private val entryId: String?,
     private val onOutput: (FormComponent.Output) -> Unit
 ) : FormComponent, ComponentContext by componentContext {
@@ -34,7 +34,7 @@ class DefaultFormComponent(
         FormStoreFactory(
             storeFactory = storeFactory,
             addEntryUseCase = addEntryUseCase,
-            repository = repository
+            getEntryByIdUseCase = getEntryByIdUseCase
         ).create(entryId)
     }
     

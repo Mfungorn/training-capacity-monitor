@@ -1,4 +1,4 @@
-package com.fungorn.trainingcapacity.feature.dashboard.graph
+package com.fungorn.trainingcapacity.feature.dashboard.presentation.graph
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshots.SnapshotStateList

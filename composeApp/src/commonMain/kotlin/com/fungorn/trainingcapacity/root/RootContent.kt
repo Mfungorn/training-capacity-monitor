@@ -6,8 +6,8 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.plus
 import com.arkivanov.decompose.extensions.compose.stack.animation.scale
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
-import com.fungorn.trainingcapacity.feature.dashboard.DashboardContent
-import com.fungorn.trainingcapacity.feature.form.FormContent
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.DashboardContent
+import com.fungorn.trainingcapacity.feature.form.presentation.FormContent
 
 @Composable
 fun RootContent(component: RootComponent) {

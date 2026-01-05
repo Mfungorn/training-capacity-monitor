@@ -1,7 +1,7 @@
 package com.fungorn.trainingcapacity
 
 import android.app.Application
-import com.fungorn.trainingcapacity.di.appModule
+import com.fungorn.trainingcapacity.di.allModules
 import com.fungorn.trainingcapacity.di.createDataStore
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -17,9 +17,9 @@ class TrainingCapacityApplication : Application() {
             androidLogger()
             androidContext(this@TrainingCapacityApplication)
             modules(
-                module { single { createDataStore(this@TrainingCapacityApplication) } },
-                appModule
+                module { single { createDataStore(this@TrainingCapacityApplication) } }
             )
+            modules(allModules)
         }
     }
 }

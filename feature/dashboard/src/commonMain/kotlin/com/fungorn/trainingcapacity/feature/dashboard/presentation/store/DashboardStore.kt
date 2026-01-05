@@ -1,11 +1,11 @@
-package com.fungorn.trainingcapacity.feature.dashboard.store
+package com.fungorn.trainingcapacity.feature.dashboard.presentation.store
 
 import androidx.compose.runtime.Stable
 import com.arkivanov.mvikotlin.core.store.Store
-import com.fungorn.trainingcapacity.feature.dashboard.graph.DashboardDifficultyGraphData
-import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStore.Intent
-import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStore.Label
-import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStore.State
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.graph.DashboardDifficultyGraphData
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore.Intent
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore.Label
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore.State
 
 interface DashboardStore : Store<Intent, State, Label> {
     

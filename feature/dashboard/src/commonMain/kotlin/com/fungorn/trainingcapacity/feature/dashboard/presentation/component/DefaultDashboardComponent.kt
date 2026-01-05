@@ -1,29 +1,26 @@
-package com.fungorn.trainingcapacity.feature.dashboard.component
+package com.fungorn.trainingcapacity.feature.dashboard.presentation.component
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import com.fungorn.trainingcapacity.core.domain.usecase.GetActiveMesocycleUseCase
-import com.fungorn.trainingcapacity.core.domain.usecase.GetAllEntriesUseCase
-import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStore
-import com.fungorn.trainingcapacity.feature.dashboard.store.DashboardStoreFactory
+import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore
+import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStoreFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
 class DefaultDashboardComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    getActiveMesocycleUseCase: GetActiveMesocycleUseCase,
-    getAllEntriesUseCase: GetAllEntriesUseCase,
+    getDashboardDataUseCase: GetDashboardDataUseCase,
     private val onOutput: (DashboardComponent.Output) -> Unit
 ) : DashboardComponent, ComponentContext by componentContext {
     
     private val store = instanceKeeper.getStore {
         DashboardStoreFactory(
             storeFactory = storeFactory,
-            getActiveMesocycleUseCase = getActiveMesocycleUseCase,
-            getAllEntriesUseCase = getAllEntriesUseCase,
+            getDashboardDataUseCase = getDashboardDataUseCase,
         ).create()
     }
     
