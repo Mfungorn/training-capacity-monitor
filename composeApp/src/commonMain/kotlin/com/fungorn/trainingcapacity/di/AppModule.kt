@@ -8,6 +8,8 @@ import com.fungorn.trainingcapacity.core.data.di.dataModule
 import com.fungorn.trainingcapacity.core.domain.di.domainModule
 import com.fungorn.trainingcapacity.feature.dashboard.di.dashboardModule
 import com.fungorn.trainingcapacity.feature.form.di.formModule
+import com.fungorn.trainingcapacity.feature.mesocycles.di.mesocyclesModule
+import com.fungorn.trainingcapacity.feature.programs.di.programsModule
 import org.koin.dsl.module
 
 val appModule = module {
@@ -20,5 +22,7 @@ val allModules = listOf(
     dataModule,
     domainModule,
     dashboardModule,
-    formModule
+    formModule,
+    mesocyclesModule,
+    programsModule
 )

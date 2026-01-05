@@ -1,178 +1,144 @@
 package com.fungorn.trainingcapacity.feature.dashboard.presentation.graph
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.unit.dp
+
+private const val MAX_DIFFICULTY = 3
+private const val MIN_DIFFICULTY = 0
+private val GRAPH_HEIGHT = 120.dp
+private val BAR_WIDTH = 24.dp
+private val BAR_SPACING = 8.dp
+private val Y_AXIS_WIDTH = 16.dp
 
 @Composable
 fun DashboardDifficultyGraph(
     barData: DashboardDifficultyGraphData,
     modifier: Modifier = Modifier,
 ) {
-    val barWidth = 8
-    var xCaptionMaxWidth by remember { mutableIntStateOf(0) }
-    var yCaptionMaxWidth by remember { mutableIntStateOf(0) }
-    var yCaptionMaxHeight by remember { mutableIntStateOf(0) }
-    val dividerThicknessDp = DividerDefaults.Thickness
-    val horizontalScrollState = rememberLazyListState()
-    val yValues = barData.entries.asSequence()
-        .map(DashboardDifficultyGraphEntry::difficulty)
-        .sortedDescending()
-        .toSet()
-    val xValuePadding = 8
-    val yValuePadding = 8
+    if (barData.entries.isEmpty()) return
 
-    with(LocalDensity.current) {
-        Column(
-            modifier = modifier,
+    val barColor = MaterialTheme.colorScheme.primary
+    val gridColor = MaterialTheme.colorScheme.outlineVariant
+    val scrollState = rememberScrollState()
+    val difficultyRange = MAX_DIFFICULTY - MIN_DIFFICULTY
+    val entriesCount = barData.entries.size
+
+    LaunchedEffect(entriesCount) {
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
+
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Row {
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    yValues.forEach { y ->
-                        Spacer(
-                            modifier = Modifier
-                                .height(
-                                    (yValuePadding - yCaptionMaxHeight / 2)
-                                        .fastCoerceAtLeast(0)
-                                        .toDp()
-                                )
-                        )
-                        Text(
-                            text = y.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            onTextLayout = { result ->
-                                val (width, height) = result.size
-                                if (width > yCaptionMaxWidth)
-                                    yCaptionMaxWidth = width
-                                if (height > yCaptionMaxHeight)
-                                    yCaptionMaxHeight = height
-                            }
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .height(
-                                    (yValuePadding - yCaptionMaxHeight / 2)
-                                        .fastCoerceAtLeast(0)
-                                        .toDp()
-                                )
-                        )
-                    }
-                }
-                VerticalDivider(modifier = Modifier.fillMaxHeight())
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.Bottom
-                ) {
-                    LazyRow(
+            // Y-axis labels
+            Box(
+                modifier = Modifier
+                    .width(Y_AXIS_WIDTH)
+                    .height(GRAPH_HEIGHT + 12.dp)
+            ) {
+                for (i in MAX_DIFFICULTY downTo MIN_DIFFICULTY) {
+                    val fraction = 1f - (i.toFloat() / difficultyRange)
+                    Text(
+                        text = i.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        state = horizontalScrollState,
-                        contentPadding = PaddingValues(
-                            horizontal = (xValuePadding - barWidth / 2)
-                                .fastCoerceAtLeast(0)
-                                .toDp(),
-                        )
-                    ) {
-                        itemsIndexed(barData.entries) { index, item ->
-                            val height =
-                                (yValues.size - 1 - yValues.indexOf(item.difficulty)) * yValuePadding
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
-                                    )
-                                    .size(
-                                        width = barWidth.toDp(),
-                                        height = height
-                                            .fastCoerceAtLeast(0)
-                                            .toDp()
-                                    )
-                            )
-                            if (index != barData.entries.size - 1) {
-                                Spacer(
-                                    modifier = Modifier
-                                        .width(
-                                            (xValuePadding - barWidth)
-                                                .fastCoerceAtLeast(0)
-                                                .toDp()
-                                        )
-                                )
-                            }
-                        }
-                    }
-                    HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                            .align(Alignment.TopEnd)
+                            .padding(top = GRAPH_HEIGHT * fraction)
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(dividerThicknessDp))
-            Row {
-                Text(
-                    modifier = Modifier.width(yCaptionMaxWidth.toDp()),
-                    text = "0",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.End
-                )
-                Spacer(modifier = Modifier.width(dividerThicknessDp))
-                LazyRow(
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Graph area with bars
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(GRAPH_HEIGHT)
+                    .horizontalScroll(scrollState)
+            ) {
+                val totalWidth = (BAR_WIDTH + BAR_SPACING) * barData.entries.size
+
+                Canvas(
                     modifier = Modifier
-                        .weight(1f),
-                    state = horizontalScrollState,
-                    contentPadding = PaddingValues(
-                        horizontal = (xValuePadding - xCaptionMaxWidth / 2)
-                            .fastCoerceAtLeast(0)
-                            .toDp(),
-                    )
+                        .width(totalWidth)
+                        .height(GRAPH_HEIGHT)
                 ) {
-                    itemsIndexed(barData.entries) { index, item ->
-                        Text(
-                            text = item.formattedDate,
-                            style = MaterialTheme.typography.bodySmall
+                    val graphHeight = size.height
+                    val barWidthPx = BAR_WIDTH.toPx()
+                    val barSpacingPx = BAR_SPACING.toPx()
+
+                    for (i in MIN_DIFFICULTY..MAX_DIFFICULTY) {
+                        val y = (graphHeight - (i.toFloat() / difficultyRange) * graphHeight)
+                            .coerceAtLeast(0f)
+                        drawLine(
+                            color = gridColor,
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = 1.dp.toPx()
                         )
-                        if (index != barData.entries.size - 1) {
-                            Spacer(
-                                modifier = Modifier
-                                    .width(
-                                        (xValuePadding - xCaptionMaxWidth / 2)
-                                            .fastCoerceAtLeast(0)
-                                            .toDp(),
-                                    )
+                    }
+
+                    barData.entries.forEachIndexed { index, entry ->
+                        val clampedDifficulty =
+                            entry.difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
+                        val barHeight =
+                            (clampedDifficulty.toFloat() / difficultyRange) * graphHeight
+                        val x = index * (barWidthPx + barSpacingPx)
+                        val y = (graphHeight - barHeight).coerceAtLeast(0f)
+
+                        if (barHeight > 0) {
+                            drawRoundRect(
+                                color = barColor,
+                                topLeft = Offset(x, y),
+                                size = Size(barWidthPx, barHeight),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
                             )
                         }
                     }
                 }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // X-axis labels
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(scrollState)
+                .padding(start = Y_AXIS_WIDTH + 8.dp)
+        ) {
+            barData.entries.forEach { entry ->
+                Text(
+                    modifier = Modifier.width(BAR_WIDTH + BAR_SPACING),
+                    text = entry.formattedDate,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
             }
         }
     }

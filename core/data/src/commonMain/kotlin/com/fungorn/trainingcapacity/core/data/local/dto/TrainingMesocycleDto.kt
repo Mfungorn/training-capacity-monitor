@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TrainingMesocycleDto(
     val id: String,
+    val programCode: String,
     val weeks: List<WeekDto> = emptyList(),
     val isSelected: Boolean = false,
     val startedAt: Long,

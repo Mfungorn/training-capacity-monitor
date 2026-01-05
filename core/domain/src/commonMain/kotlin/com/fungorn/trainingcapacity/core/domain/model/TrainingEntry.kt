@@ -2,6 +2,7 @@ package com.fungorn.trainingcapacity.core.domain.model
 
 data class TrainingEntry(
     val id: String,
+    val mesocycleId: String,
     val program: TrainingProgram,
     val weekNumber: Int,
     val trainingDayNumber: Int,

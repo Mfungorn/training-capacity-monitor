@@ -21,7 +21,7 @@ class MesocycleRepositoryImpl(
         localDataSource.getCycleById(id).map { it?.toDomain() }
 
     override fun getSelectedCycle(): Flow<TrainingMesocycle?> =
-        localDataSource.getSelectedCycle().map { it.toDomain() }
+        localDataSource.getSelectedCycle().map { it?.toDomain() }
 
     override suspend fun createCycle(cycle: TrainingMesocycle) {
         localDataSource.createCycle(cycle.toDto())

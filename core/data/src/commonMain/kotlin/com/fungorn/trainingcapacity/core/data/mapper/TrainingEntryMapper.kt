@@ -6,6 +6,7 @@ import com.fungorn.trainingcapacity.core.domain.model.TrainingProgram
 
 fun TrainingEntryDto.toDomain(): TrainingEntry = TrainingEntry(
     id = id,
+    mesocycleId = mesocycleId,
     program = trainingProgram,
     trainingDayNumber = trainingDayNumber,
     weekNumber = weekNumber,
@@ -16,6 +17,7 @@ fun TrainingEntryDto.toDomain(): TrainingEntry = TrainingEntry(
 
 fun TrainingEntry.toDto(): TrainingEntryDto = TrainingEntryDto(
     id = id,
+    mesocycleId = mesocycleId,
     code = buildTrainingCode(),
     spentMaximumCapacitySets = spentMaximumCapacitySets,
     overallDifficulty = overallDifficulty,

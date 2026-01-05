@@ -2,9 +2,11 @@ package com.fungorn.trainingcapacity.core.data.mapper
 
 import com.fungorn.trainingcapacity.core.data.local.dto.TrainingMesocycleDto
 import com.fungorn.trainingcapacity.core.domain.model.TrainingMesocycle
+import com.fungorn.trainingcapacity.core.domain.model.TrainingProgram
 
 fun TrainingMesocycleDto.toDomain(): TrainingMesocycle = TrainingMesocycle(
     id = id,
+    program = programCode.toTrainingProgram(),
     weeks = weeks.map { weekDto ->
         weekDto.toDomain()
     },
@@ -12,8 +14,14 @@ fun TrainingMesocycleDto.toDomain(): TrainingMesocycle = TrainingMesocycle(
     startedAt = startedAt,
 )
 
+private fun String.toTrainingProgram(): TrainingProgram = when {
+    startsWith("UL") -> TrainingProgram.UpperLower
+    else -> TrainingProgram.Deload
+}
+
 fun TrainingMesocycle.toDto(): TrainingMesocycleDto = TrainingMesocycleDto(
     id = id,
+    programCode = program.code,
     weeks = weeks.map { week ->
         week.toDto()
     },

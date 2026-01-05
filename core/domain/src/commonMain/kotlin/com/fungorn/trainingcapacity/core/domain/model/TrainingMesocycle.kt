@@ -2,6 +2,7 @@ package com.fungorn.trainingcapacity.core.domain.model
 
 data class TrainingMesocycle(
     val id: String,
+    val program: TrainingProgram,
     val weeks: List<Week>,
     val isSelected: Boolean,
     val startedAt: Long,

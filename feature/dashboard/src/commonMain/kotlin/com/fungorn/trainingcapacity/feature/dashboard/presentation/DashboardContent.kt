@@ -1,5 +1,6 @@
 package com.fungorn.trainingcapacity.feature.dashboard.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,11 +25,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fungorn.trainingcapacity.core.ui.components.LoadingIndicator
@@ -51,13 +54,15 @@ fun DashboardContent(component: DashboardComponent) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { component.onAddClick() }
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Add Entry"
-                )
+            if (!state.currentMesocycleId.isNullOrEmpty()) {
+                FloatingActionButton(
+                    onClick = component::onAddClick
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Add Entry"
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -68,17 +73,25 @@ fun DashboardContent(component: DashboardComponent) {
         ) {
             when {
                 state.isLoading -> LoadingIndicator()
-                else -> DashboardContent(
-                    modifier = Modifier.fillMaxSize(),
-                    state = state,
-                )
+                else -> PullToRefreshBox(
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = component::onRefresh,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    DashboardScrollableContent(
+                        modifier = Modifier.fillMaxSize(),
+                        component = component,
+                        state = state,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DashboardContent(
+private fun DashboardScrollableContent(
+    component: DashboardComponent,
     state: DashboardStore.State,
     modifier: Modifier = Modifier,
 ) {
@@ -103,7 +116,8 @@ private fun DashboardContent(
                 modifier = Modifier
                     .weight(1f),
                 title = "${state.currentMesocycleWeekNumber} / ${state.totalMesocycleWeeksCount}",
-                subtitle = "Mesocycle weeks",
+                subtitle = "Mesocycle week",
+                onClick = component::onMesocyclesClick
             )
             Spacer(modifier = Modifier.width(12.dp))
             DashboardDataCard(
@@ -111,13 +125,15 @@ private fun DashboardContent(
                     .weight(1f),
                 title = state.currentMesocycleWeekCapacityRange,
                 subtitle = "Current week RIR range",
+                onClick = component::onMesocyclesClick
             )
             Spacer(modifier = Modifier.width(12.dp))
             DashboardDataCard(
                 modifier = Modifier
                     .weight(1f),
-                title = state.totalMesocycleMaximumCapacitySets.toString(),
+                title = "${state.spentMesocycleMaximumCapacitySets} / ${state.totalMesocycleMaximumCapacitySets}",
                 subtitle = "RIRs bank",
+                onClick = component::onMesocyclesClick
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -135,6 +151,7 @@ private fun DashboardContent(
                     .weight(1f),
                 title = state.currentProgramName,
                 subtitle = "Current program",
+                onClick = component::onProgramsClick
             )
             Spacer(modifier = Modifier.width(12.dp))
             DashboardDataCard(
@@ -142,6 +159,7 @@ private fun DashboardContent(
                     .weight(1f),
                 title = "${state.currentTrainingDayNumber} / ${state.totalTrainingDaysCount}",
                 subtitle = "Training day",
+                onClick = component::onProgramsClick
             )
             Spacer(modifier = Modifier.width(12.dp))
             DashboardDataCard(
@@ -149,6 +167,7 @@ private fun DashboardContent(
                     .weight(1f),
                 title = "${state.spentMaximumCapacitySetsThisWeek} / ${state.totalMaximumCapacitySetsThisWeek}",
                 subtitle = "Current week max RIRs",
+                onClick = component::onProgramsClick
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -182,10 +201,13 @@ private fun DashboardContent(
 private fun DashboardDataCard(
     title: String,
     subtitle: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer

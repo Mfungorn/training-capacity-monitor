@@ -14,7 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,22 +24,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fungorn.trainingcapacity.core.ui.components.LoadingIndicator
+import com.fungorn.trainingcapacity.core.ui.components.NumberPicker
 import com.fungorn.trainingcapacity.feature.form.presentation.component.FormComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormContent(component: FormComponent) {
     val state by component.state.collectAsState()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text("New Entry")
                 },
                 navigationIcon = {
-                    IconButton(onClick = { component.onBackClick() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = component::onBackClick) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -55,26 +59,35 @@ fun FormContent(component: FormComponent) {
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                OutlinedTextField(
-                    value = "",
-                    onValueChange = {  },
-                    label = {  },
-                    isError = state.errorMessage != null,
-                    supportingText = state.errorMessage?.let { { Text(it) } },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                NumberPicker(
+                    label = "Max. Capacity Sets",
+                    value = state.maxCapacitySets,
+                    onValueChange = { component.onMaxCapacitySetsChange(it) },
+                    minValue = 0,
+                    maxValue = 99
                 )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // TODO
-
+                Spacer(modifier = Modifier.height(32.dp))
+                NumberPicker(
+                    label = "Overall Difficulty",
+                    value = state.overallDifficulty,
+                    onValueChange = { component.onOverallDifficultyChange(it) },
+                    minValue = 0,
+                    maxValue = 3
+                )
+                Spacer(modifier = Modifier.height(32.dp))
                 Button(
                     onClick = { component.onSaveClick() },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !state.isLoading
                 ) {
-                    Text( "Save")
+                    Text("Done")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = component::onBackClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancel")
                 }
             }
         }

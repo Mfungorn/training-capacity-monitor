@@ -4,35 +4,43 @@ import com.arkivanov.mvikotlin.core.store.Reducer
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+import com.fungorn.trainingcapacity.core.domain.model.TrainingEntry
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
+import com.fungorn.trainingcapacity.feature.form.domain.usecase.GetCurrentTrainingContextUseCase
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class FormStoreFactory(
     private val storeFactory: StoreFactory,
     private val addEntryUseCase: AddEntryUseCase,
-    private val getEntryByIdUseCase: GetEntryByIdUseCase
+    private val getEntryByIdUseCase: GetEntryByIdUseCase,
+    private val getCurrentTrainingContextUseCase: GetCurrentTrainingContextUseCase
 ) {
 
     fun create(entryId: String? = null): FormStore =
-        object : FormStore, Store<FormStore.Intent, FormStore.State, FormStore.Label> by storeFactory.create(
-            name = "FormStore",
-            initialState = FormStore.State(),
-            executorFactory = { ExecutorImpl(entryId) },
-            reducer = ReducerImpl
-        ) {}
+        object : FormStore,
+            Store<FormStore.Intent, FormStore.State, FormStore.Label> by storeFactory.create(
+                name = "FormStore",
+                initialState = FormStore.State(),
+                executorFactory = { ExecutorImpl(entryId) },
+                reducer = ReducerImpl
+            ) {}
 
     private sealed interface Msg {
         data object StartLoading : Msg
         data object StopLoading : Msg
         data class EntryLoaded(
             val id: String,
-            // TODO
+            val maxCapacitySets: Int,
+            val overallDifficulty: Int
         ) : Msg
 
-        // TODO
-
+        data class UpdateMaxCapacitySets(val value: Int) : Msg
+        data class UpdateOverallDifficulty(val value: Int) : Msg
         data class SetErrorMessage(val error: String?) : Msg
     }
 
@@ -45,7 +53,18 @@ class FormStoreFactory(
         override fun executeIntent(intent: FormStore.Intent) {
             when (intent) {
                 is FormStore.Intent.LoadEntry -> loadEntry(intent.id)
-                // TODO
+                is FormStore.Intent.UpdateMaxCapacitySets -> dispatch(
+                    Msg.UpdateMaxCapacitySets(
+                        intent.value
+                    )
+                )
+
+                is FormStore.Intent.UpdateOverallDifficulty -> dispatch(
+                    Msg.UpdateOverallDifficulty(
+                        intent.value
+                    )
+                )
+
                 is FormStore.Intent.SaveEntry -> saveEntry()
             }
         }
@@ -59,7 +78,8 @@ class FormStoreFactory(
                         dispatch(
                             Msg.EntryLoaded(
                                 id = entry.id,
-                                // TODO
+                                maxCapacitySets = entry.spentMaximumCapacitySets,
+                                overallDifficulty = entry.overallDifficulty
                             )
                         )
                     } else {
@@ -73,12 +93,36 @@ class FormStoreFactory(
             }
         }
 
+        @OptIn(ExperimentalUuidApi::class)
         private fun saveEntry() {
             val currentState = state()
-            // TODO
             scope.launch {
                 dispatch(Msg.StartLoading)
-                // TODO
+                try {
+                    val context = getCurrentTrainingContextUseCase().firstOrNull()
+                    if (context == null) {
+                        dispatch(Msg.StopLoading)
+                        publish(FormStore.Label.ShowError("No active mesocycle"))
+                        return@launch
+                    }
+
+                    val entry = TrainingEntry(
+                        id = currentState.id ?: Uuid.random().toString(),
+                        mesocycleId = context.mesocycleId,
+                        program = context.currentProgram,
+                        weekNumber = context.currentWeekNumber,
+                        trainingDayNumber = context.nextTrainingDayNumber,
+                        spentMaximumCapacitySets = currentState.maxCapacitySets,
+                        overallDifficulty = currentState.overallDifficulty,
+                        createdAt = Clock.System.now().toEpochMilliseconds()
+                    )
+                    addEntryUseCase(entry)
+                    dispatch(Msg.StopLoading)
+                    publish(FormStore.Label.EntrySaved)
+                } catch (e: Exception) {
+                    dispatch(Msg.StopLoading)
+                    publish(FormStore.Label.ShowError(e.message ?: "Failed to save entry"))
+                }
             }
         }
     }
@@ -90,9 +134,13 @@ class FormStoreFactory(
                 is Msg.StopLoading -> copy(isLoading = false)
                 is Msg.EntryLoaded -> copy(
                     id = msg.id,
-                    isLoading = false,
+                    maxCapacitySets = msg.maxCapacitySets,
+                    overallDifficulty = msg.overallDifficulty,
+                    isLoading = false
                 )
-                // TODO
+
+                is Msg.UpdateMaxCapacitySets -> copy(maxCapacitySets = msg.value)
+                is Msg.UpdateOverallDifficulty -> copy(overallDifficulty = msg.value)
                 is Msg.SetErrorMessage -> copy(errorMessage = msg.error)
             }
     }

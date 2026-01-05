@@ -38,6 +38,8 @@ kotlin {
             implementation(projects.core.ui)
             implementation(projects.feature.dashboard)
             implementation(projects.feature.form)
+            implementation(projects.feature.mesocycles)
+            implementation(projects.feature.programs)
             
             implementation(compose.runtime)
             implementation(compose.foundation)

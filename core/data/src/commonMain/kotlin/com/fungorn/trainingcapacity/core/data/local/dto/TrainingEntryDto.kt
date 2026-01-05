@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TrainingEntryDto(
     val id: String,
+    val mesocycleId: String,
     val code: String,
     val spentMaximumCapacitySets: Int,
     val overallDifficulty: Int,

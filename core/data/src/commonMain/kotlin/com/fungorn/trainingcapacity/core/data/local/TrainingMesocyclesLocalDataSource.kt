@@ -80,12 +80,13 @@ class TrainingMesocyclesLocalDataSource(
 
     fun getSelectedCycle() = getAllCycles().map { cycles ->
         cycles.find(TrainingMesocycleDto::isSelected)
-            ?: defaultSelectedMesocycle // TODO
     }
 
+    // TODO : will be changed later
     private val defaultSelectedMesocycle
         get() = TrainingMesocycleDto(
             id = "0",
+            programCode = "UL",
             isSelected = true,
             weeks = listOf(
                 TrainingMesocycleDto.WeekDto(

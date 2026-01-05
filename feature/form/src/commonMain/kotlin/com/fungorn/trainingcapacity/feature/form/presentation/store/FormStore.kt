@@ -9,15 +9,15 @@ interface FormStore : Store<Intent, State, Label> {
     
     sealed interface Intent {
         data class LoadEntry(val id: String) : Intent
-
-        // TODO
-
+        data class UpdateMaxCapacitySets(val value: Int) : Intent
+        data class UpdateOverallDifficulty(val value: Int) : Intent
         data object SaveEntry : Intent
     }
     
     data class State(
         val id: String? = null,
-        // TODO
+        val maxCapacitySets: Int = 4,
+        val overallDifficulty: Int = 2,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
     )

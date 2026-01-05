@@ -1,6 +1,7 @@
 package com.fungorn.trainingcapacity.feature.dashboard.presentation.component
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
@@ -23,15 +24,29 @@ class DefaultDashboardComponent(
             getDashboardDataUseCase = getDashboardDataUseCase,
         ).create()
     }
+
+    init {
+        lifecycle.subscribe(
+            object : Lifecycle.Callbacks {
+                override fun onResume() {
+                    store.accept(DashboardStore.Intent.Refresh)
+                }
+            }
+        )
+    }
     
     @OptIn(ExperimentalCoroutinesApi::class)
     override val state: StateFlow<DashboardStore.State> = store.stateFlow
 
-    override fun onMesocycleClick() {
+    override fun onRefresh() {
+        store.accept(DashboardStore.Intent.Refresh)
+    }
+
+    override fun onMesocyclesClick() {
         onOutput(DashboardComponent.Output.NavigateToMesocycles)
     }
 
-    override fun onProgramClick() {
+    override fun onProgramsClick() {
         onOutput(DashboardComponent.Output.NavigateToPrograms)
     }
 

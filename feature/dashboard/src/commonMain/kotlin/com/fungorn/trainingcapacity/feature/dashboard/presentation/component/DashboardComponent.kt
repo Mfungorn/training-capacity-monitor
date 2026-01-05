@@ -6,9 +6,10 @@ import kotlinx.coroutines.flow.StateFlow
 interface DashboardComponent {
     
     val state: StateFlow<DashboardStore.State>
-    
-    fun onMesocycleClick()
-    fun onProgramClick()
+
+    fun onRefresh()
+    fun onMesocyclesClick()
+    fun onProgramsClick()
     fun onAddClick()
 
     sealed interface Output {

@@ -10,9 +10,12 @@ import com.fungorn.trainingcapacity.feature.dashboard.domain.model.DashboardData
 import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.graph.DashboardDifficultyGraphData
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.graph.DashboardDifficultyGraphEntry
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class DashboardStoreFactory(
     private val storeFactory: StoreFactory,
@@ -20,13 +23,14 @@ class DashboardStoreFactory(
 ) {
 
     fun create(): DashboardStore =
-        object : DashboardStore, Store<DashboardStore.Intent, DashboardStore.State, DashboardStore.Label> by storeFactory.create(
-            name = "DashboardStore",
-            initialState = DashboardStore.State(),
-            bootstrapper = BootstrapperImpl(),
-            executorFactory = { ExecutorImpl() },
-            reducer = ReducerImpl
-        ) {}
+        object : DashboardStore,
+            Store<DashboardStore.Intent, DashboardStore.State, DashboardStore.Label> by storeFactory.create(
+                name = "DashboardStore",
+                initialState = DashboardStore.State(),
+                bootstrapper = BootstrapperImpl(),
+                executorFactory = { ExecutorImpl() },
+                reducer = ReducerImpl
+            ) {}
 
     private sealed interface Action {
         data object StartLoading : Action
@@ -36,6 +40,7 @@ class DashboardStoreFactory(
 
     private sealed interface Msg {
         data object StartLoading : Msg
+        data object StartRefreshing : Msg
         data class DataLoaded(val data: DashboardData) : Msg
         data class LoadingFailed(val error: String) : Msg
     }
@@ -50,7 +55,8 @@ class DashboardStoreFactory(
         }
     }
 
-    private inner class ExecutorImpl : CoroutineExecutor<DashboardStore.Intent, Action, DashboardStore.State, Msg, DashboardStore.Label>() {
+    private inner class ExecutorImpl :
+        CoroutineExecutor<DashboardStore.Intent, Action, DashboardStore.State, Msg, DashboardStore.Label>() {
         override fun executeAction(action: Action) {
             when (action) {
                 is Action.StartLoading -> dispatch(Msg.StartLoading)
@@ -70,6 +76,19 @@ class DashboardStoreFactory(
                         .catch { e -> dispatch(Msg.LoadingFailed(e.message ?: "Unknown error")) }
                         .launchIn(scope)
                 }
+
+                is DashboardStore.Intent.Refresh -> {
+                    dispatch(Msg.StartRefreshing)
+                    scope.launch {
+                        try {
+                            delay(500L)
+                            val data = getDashboardDataUseCase().first()
+                            dispatch(Msg.DataLoaded(data))
+                        } catch (e: Exception) {
+                            dispatch(Msg.LoadingFailed(e.message ?: "Unknown error"))
+                        }
+                    }
+                }
             }
         }
     }
@@ -78,7 +97,8 @@ class DashboardStoreFactory(
 
         override fun DashboardStore.State.reduce(msg: Msg): DashboardStore.State =
             when (msg) {
-                is Msg.StartLoading -> copy(isLoading = true, error = null)
+                is Msg.StartLoading -> copy(isLoading = true, isRefreshing = false, error = null)
+                is Msg.StartRefreshing -> copy(isRefreshing = true, error = null)
                 is Msg.DataLoaded -> {
                     val data = msg.data
                     val graphEntries = data.difficultyGraphEntries.map {
@@ -88,10 +108,12 @@ class DashboardStoreFactory(
                         )
                     }
                     copy(
+                        currentMesocycleId = data.mesocycleId,
                         currentMesocycleName = data.mesocycleName,
                         currentMesocycleWeekNumber = data.currentWeekNumber,
                         currentMesocycleWeekCapacityRange = data.currentWeekCapacityRange,
                         totalMesocycleWeeksCount = data.totalWeeksCount,
+                        spentMesocycleMaximumCapacitySets = data.spentMesocycleMaximumCapacitySets,
                         totalMesocycleMaximumCapacitySets = data.totalMesocycleMaximumCapacitySets,
                         isFirstWeek = data.isFirstWeek,
                         isLastWeek = data.isLastWeek,
@@ -106,6 +128,7 @@ class DashboardStoreFactory(
                             }
                         ),
                         isLoading = false,
+                        isRefreshing = false,
                         error = null
                     )
                 }

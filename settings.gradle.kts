@@ -39,3 +39,5 @@ include(":core:ui")
 // Feature modules
 include(":feature:dashboard")
 include(":feature:form")
+include(":feature:mesocycles")
+include(":feature:programs")

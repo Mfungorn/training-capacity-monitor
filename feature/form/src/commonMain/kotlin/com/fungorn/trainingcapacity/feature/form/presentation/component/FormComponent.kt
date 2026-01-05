@@ -7,8 +7,8 @@ interface FormComponent {
     
     val state: StateFlow<FormStore.State>
 
-    // TODO
-
+    fun onMaxCapacitySetsChange(value: Int)
+    fun onOverallDifficultyChange(value: Int)
     fun onSaveClick()
     fun onBackClick()
     

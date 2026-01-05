@@ -11,24 +11,28 @@ interface DashboardStore : Store<Intent, State, Label> {
     
     sealed interface Intent {
         data object LoadEntries : Intent
+        data object Refresh : Intent
     }
 
     @Stable
     data class State(
-        val currentMesocycleName: String = "",
+        val currentMesocycleId: String? = null,
+        val currentMesocycleName: String = "-",
         val currentMesocycleWeekNumber: Int = 0,
         val currentMesocycleWeekCapacityRange: String = "-",
         val isFirstWeek: Boolean = false,
         val isLastWeek: Boolean = false,
         val totalMesocycleWeeksCount: Int = 0,
+        val spentMesocycleMaximumCapacitySets: Int = 0,
         val totalMesocycleMaximumCapacitySets: Int = 0,
-        val currentProgramName: String = "",
+        val currentProgramName: String = "-",
         val currentTrainingDayNumber: Int = 0,
         val totalTrainingDaysCount: Int = 0,
         val spentMaximumCapacitySetsThisWeek: Int = 0,
         val totalMaximumCapacitySetsThisWeek: Int = 0,
         val graphData: DashboardDifficultyGraphData = DashboardDifficultyGraphData(),
         val isLoading: Boolean = true,
+        val isRefreshing: Boolean = false,
         val error: String? = null
     )
     

@@ -4,11 +4,15 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import com.fungorn.trainingcapacity.core.domain.repository.MesocycleRepository
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
-import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.StartNewMesocycleUseCase
 import com.fungorn.trainingcapacity.di.allModules
 import com.fungorn.trainingcapacity.di.createDataStore
+import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
+import com.fungorn.trainingcapacity.feature.form.domain.usecase.GetCurrentTrainingContextUseCase
+import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocycleListUseCase
 import com.fungorn.trainingcapacity.root.DefaultRootComponent
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -27,7 +31,11 @@ private val rootComponent = DefaultRootComponent(
     storeFactory = koin.get<StoreFactory>(),
     getDashboardDataUseCase = koin.get<GetDashboardDataUseCase>(),
     addEntryUseCase = koin.get<AddEntryUseCase>(),
-    getEntryByIdUseCase = koin.get<GetEntryByIdUseCase>()
+    getEntryByIdUseCase = koin.get<GetEntryByIdUseCase>(),
+    getCurrentTrainingContextUseCase = koin.get<GetCurrentTrainingContextUseCase>(),
+    getMesocycleListUseCase = koin.get<GetMesocycleListUseCase>(),
+    mesocycleRepository = koin.get<MesocycleRepository>(),
+    startNewMesocycleUseCase = koin.get<StartNewMesocycleUseCase>()
 )
 
 fun MainViewController() = ComposeUIViewController {

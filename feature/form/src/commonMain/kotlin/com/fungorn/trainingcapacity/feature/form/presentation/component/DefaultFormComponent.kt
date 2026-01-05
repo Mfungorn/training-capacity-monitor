@@ -8,6 +8,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
+import com.fungorn.trainingcapacity.feature.form.domain.usecase.GetCurrentTrainingContextUseCase
 import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStore
 import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStoreFactory
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,7 @@ class DefaultFormComponent(
     storeFactory: StoreFactory,
     addEntryUseCase: AddEntryUseCase,
     getEntryByIdUseCase: GetEntryByIdUseCase,
+    getCurrentTrainingContextUseCase: GetCurrentTrainingContextUseCase,
     private val entryId: String?,
     private val onOutput: (FormComponent.Output) -> Unit
 ) : FormComponent, ComponentContext by componentContext {
@@ -34,7 +36,8 @@ class DefaultFormComponent(
         FormStoreFactory(
             storeFactory = storeFactory,
             addEntryUseCase = addEntryUseCase,
-            getEntryByIdUseCase = getEntryByIdUseCase
+            getEntryByIdUseCase = getEntryByIdUseCase,
+            getCurrentTrainingContextUseCase = getCurrentTrainingContextUseCase
         ).create(entryId)
     }
     
@@ -57,6 +60,14 @@ class DefaultFormComponent(
     
     @OptIn(ExperimentalCoroutinesApi::class)
     override val state: StateFlow<FormStore.State> = store.stateFlow
+
+    override fun onMaxCapacitySetsChange(value: Int) {
+        store.accept(FormStore.Intent.UpdateMaxCapacitySets(value))
+    }
+
+    override fun onOverallDifficultyChange(value: Int) {
+        store.accept(FormStore.Intent.UpdateOverallDifficulty(value))
+    }
     
     override fun onSaveClick() {
         store.accept(FormStore.Intent.SaveEntry)
