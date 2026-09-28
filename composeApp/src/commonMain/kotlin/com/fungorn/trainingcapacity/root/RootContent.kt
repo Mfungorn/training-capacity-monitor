@@ -10,6 +10,7 @@ import com.fungorn.trainingcapacity.feature.dashboard.presentation.DashboardCont
 import com.fungorn.trainingcapacity.feature.form.presentation.FormContent
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.MesocycleDetailContent
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.MesocyclesContent
+import com.fungorn.trainingcapacity.feature.programs.presentation.ProgramDetailContent
 import com.fungorn.trainingcapacity.feature.programs.presentation.ProgramsContent
 
 @Composable
@@ -24,6 +25,7 @@ fun RootContent(component: RootComponent) {
             is RootComponent.Child.Mesocycles -> MesocyclesContent(instance.component)
             is RootComponent.Child.MesocycleDetail -> MesocycleDetailContent(instance.component)
             is RootComponent.Child.Programs -> ProgramsContent(instance.component)
+            is RootComponent.Child.ProgramDetail -> ProgramDetailContent(instance.component)
         }
     }
 }

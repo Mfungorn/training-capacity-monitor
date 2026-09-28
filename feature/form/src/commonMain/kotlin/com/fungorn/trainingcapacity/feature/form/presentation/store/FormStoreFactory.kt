@@ -8,8 +8,11 @@ import com.fungorn.trainingcapacity.core.domain.model.TrainingEntry
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
 import com.fungorn.trainingcapacity.feature.form.domain.usecase.GetCurrentTrainingContextUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -73,7 +76,9 @@ class FormStoreFactory(
             scope.launch {
                 dispatch(Msg.StartLoading)
                 try {
-                    val entry = getEntryByIdUseCase(id).firstOrNull()
+                    val entry = withContext(Dispatchers.IO) {
+                        getEntryByIdUseCase(id).firstOrNull()
+                    }
                     if (entry != null) {
                         dispatch(
                             Msg.EntryLoaded(
@@ -99,7 +104,9 @@ class FormStoreFactory(
             scope.launch {
                 dispatch(Msg.StartLoading)
                 try {
-                    val context = getCurrentTrainingContextUseCase().firstOrNull()
+                    val context = withContext(Dispatchers.IO) {
+                        getCurrentTrainingContextUseCase().firstOrNull()
+                    }
                     if (context == null) {
                         dispatch(Msg.StopLoading)
                         publish(FormStore.Label.ShowError("No active mesocycle"))
@@ -109,14 +116,16 @@ class FormStoreFactory(
                     val entry = TrainingEntry(
                         id = currentState.id ?: Uuid.random().toString(),
                         mesocycleId = context.mesocycleId,
-                        program = context.currentProgram,
+                        programId = context.currentProgram.code,
                         weekNumber = context.currentWeekNumber,
                         trainingDayNumber = context.nextTrainingDayNumber,
                         spentMaximumCapacitySets = currentState.maxCapacitySets,
                         overallDifficulty = currentState.overallDifficulty,
                         createdAt = Clock.System.now().toEpochMilliseconds()
                     )
-                    addEntryUseCase(entry)
+                    withContext(Dispatchers.IO) {
+                        addEntryUseCase(entry)
+                    }
                     dispatch(Msg.StopLoading)
                     publish(FormStore.Label.EntrySaved)
                 } catch (e: Exception) {

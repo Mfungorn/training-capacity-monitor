@@ -8,9 +8,15 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.fungorn.trainingcapacity.core.domain.repository.MesocycleRepository
+import com.fungorn.trainingcapacity.core.common.DispatcherProvider
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.CreateProgramUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetAllProgramsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetProgramByCodeUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.SelectProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.StartNewMesocycleUseCase
 import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.component.DashboardComponent
@@ -18,12 +24,14 @@ import com.fungorn.trainingcapacity.feature.dashboard.presentation.component.Def
 import com.fungorn.trainingcapacity.feature.form.domain.usecase.GetCurrentTrainingContextUseCase
 import com.fungorn.trainingcapacity.feature.form.presentation.component.DefaultFormComponent
 import com.fungorn.trainingcapacity.feature.form.presentation.component.FormComponent
-import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocycleListUseCase
+import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocyclesDataUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.component.DefaultMesocycleDetailComponent
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.component.DefaultMesocyclesComponent
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.component.MesocycleDetailComponent
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.component.MesocyclesComponent
+import com.fungorn.trainingcapacity.feature.programs.presentation.component.DefaultProgramDetailComponent
 import com.fungorn.trainingcapacity.feature.programs.presentation.component.DefaultProgramsComponent
+import com.fungorn.trainingcapacity.feature.programs.presentation.component.ProgramDetailComponent
 import com.fungorn.trainingcapacity.feature.programs.presentation.component.ProgramsComponent
 import kotlinx.serialization.Serializable
 
@@ -31,13 +39,19 @@ import kotlinx.serialization.Serializable
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val storeFactory: StoreFactory,
+    private val dispatcherProvider: DispatcherProvider,
     private val getDashboardDataUseCase: GetDashboardDataUseCase,
     private val addEntryUseCase: AddEntryUseCase,
     private val getEntryByIdUseCase: GetEntryByIdUseCase,
     private val getCurrentTrainingContextUseCase: GetCurrentTrainingContextUseCase,
-    private val getMesocycleListUseCase: GetMesocycleListUseCase,
-    private val mesocycleRepository: MesocycleRepository,
-    private val startNewMesocycleUseCase: StartNewMesocycleUseCase
+    private val getMesocyclesDataUseCase: GetMesocyclesDataUseCase,
+    private val getMesocycleByIdUseCase: GetMesocycleByIdUseCase,
+    private val startNewMesocycleUseCase: StartNewMesocycleUseCase,
+    private val getAllProgramsUseCase: GetAllProgramsUseCase,
+    private val getSelectedProgramUseCase: GetSelectedProgramUseCase,
+    private val selectProgramUseCase: SelectProgramUseCase,
+    private val getProgramByCodeUseCase: GetProgramByCodeUseCase,
+    private val createProgramUseCase: CreateProgramUseCase
 ) : RootComponent, ComponentContext by componentContext {
 
     private val navigation = StackNavigation<Config>()
@@ -75,6 +89,10 @@ class DefaultRootComponent(
             is Config.Programs -> RootComponent.Child.Programs(
                 createProgramsComponent(componentContext)
             )
+
+            is Config.ProgramDetail -> RootComponent.Child.ProgramDetail(
+                createProgramDetailComponent(componentContext, config.programCode)
+            )
         }
 
     private fun createDashboardComponent(componentContext: ComponentContext): DashboardComponent =
@@ -82,6 +100,7 @@ class DefaultRootComponent(
             componentContext = componentContext,
             storeFactory = storeFactory,
             getDashboardDataUseCase = getDashboardDataUseCase,
+            getSelectedProgramUseCase = getSelectedProgramUseCase,
             onOutput = ::onDashboardOutput
         )
 
@@ -103,7 +122,7 @@ class DefaultRootComponent(
         DefaultMesocyclesComponent(
             componentContext = componentContext,
             storeFactory = storeFactory,
-            getMesocycleListUseCase = getMesocycleListUseCase,
+            getMesocyclesDataUseCase = getMesocyclesDataUseCase,
             onOutput = ::onMesocyclesOutput
         )
 
@@ -114,7 +133,8 @@ class DefaultRootComponent(
         DefaultMesocycleDetailComponent(
             componentContext = componentContext,
             storeFactory = storeFactory,
-            mesocycleRepository = mesocycleRepository,
+            getMesocycleByIdUseCase = getMesocycleByIdUseCase,
+            getSelectedProgramUseCase = getSelectedProgramUseCase,
             startNewMesocycleUseCase = startNewMesocycleUseCase,
             mesocycleId = mesocycleId,
             onOutput = ::onMesocycleDetailOutput
@@ -124,7 +144,25 @@ class DefaultRootComponent(
         DefaultProgramsComponent(
             componentContext = componentContext,
             storeFactory = storeFactory,
+            dispatcherProvider = dispatcherProvider,
+            getAllProgramsUseCase = getAllProgramsUseCase,
+            getSelectedProgramUseCase = getSelectedProgramUseCase,
+            selectProgramUseCase = selectProgramUseCase,
             onOutput = ::onProgramsOutput
+        )
+
+    private fun createProgramDetailComponent(
+        componentContext: ComponentContext,
+        programCode: String?
+    ): ProgramDetailComponent =
+        DefaultProgramDetailComponent(
+            componentContext = componentContext,
+            storeFactory = storeFactory,
+            dispatcherProvider = dispatcherProvider,
+            getProgramByCodeUseCase = getProgramByCodeUseCase,
+            createProgramUseCase = createProgramUseCase,
+            programCode = programCode,
+            onOutput = ::onProgramDetailOutput
         )
 
     private fun onDashboardOutput(output: DashboardComponent.Output) {
@@ -172,6 +210,17 @@ class DefaultRootComponent(
     private fun onProgramsOutput(output: ProgramsComponent.Output) {
         when (output) {
             ProgramsComponent.Output.NavigateBack -> navigation.pop()
+            is ProgramsComponent.Output.NavigateToViewProgram ->
+                navigation.push(Config.ProgramDetail(output.program.code))
+
+            ProgramsComponent.Output.NavigateToCreateProgram ->
+                navigation.push(Config.ProgramDetail(null))
+        }
+    }
+
+    private fun onProgramDetailOutput(output: ProgramDetailComponent.Output) {
+        when (output) {
+            ProgramDetailComponent.Output.NavigateBack -> navigation.pop()
         }
     }
 
@@ -191,5 +240,8 @@ class DefaultRootComponent(
 
         @Serializable
         data object Programs : Config
+
+        @Serializable
+        data class ProgramDetail(val programCode: String?) : Config
     }
 }

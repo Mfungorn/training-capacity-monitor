@@ -16,8 +16,6 @@ class TrainingEntriesLocalDataSource(
     private val json = Json { ignoreUnknownKeys = true }
     
     companion object {
-        private val MESOCYCLES_KEY = stringPreferencesKey("training_mesocycles")
-        private val PROGRAMS_KEY = stringPreferencesKey("training_programs")
         private val ENTRIES_KEY = stringPreferencesKey("training_entries")
     }
     

@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -63,8 +63,9 @@ fun ProgramsContent(component: ProgramsComponent) {
             items(state.programs) { program ->
                 ProgramCard(
                     program = program,
-                    isSelected = program == state.selectedProgram,
-                    onClick = { component.onProgramClick(program) }
+                    isSelected = program.code == state.selectedProgramCode,
+                    onClick = { component.onProgramClick(program) },
+                    onSelectClick = { component.onProgramSelect(program.code) }
                 )
             }
 
@@ -72,9 +73,8 @@ fun ProgramsContent(component: ProgramsComponent) {
 
             item {
                 OutlinedButton(
-                    onClick = { /* Unavailable yet */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false
+                    onClick = component::onCreateProgramClick,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
                         Icons.Default.Add,
@@ -83,13 +83,6 @@ fun ProgramsContent(component: ProgramsComponent) {
                     )
                     Text("Create new program")
                 }
-
-                Text(
-                    text = "Unavailable yet",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
             }
         }
     }
@@ -99,7 +92,8 @@ fun ProgramsContent(component: ProgramsComponent) {
 private fun ProgramCard(
     program: TrainingProgram,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSelectClick: () -> Unit
 ) {
     Card(
         onClick = onClick,
@@ -115,13 +109,21 @@ private fun ProgramCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(start = 4.dp, end = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            RadioButton(
+                selected = isSelected,
+                onClick = onSelectClick
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 16.dp)
+            ) {
                 Text(
-                    text = program.displayName,
+                    text = program.name,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
@@ -130,19 +132,9 @@ private fun ProgramCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            if (isSelected) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = "Selected",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
         }
     }
 }
 
 private val TrainingProgram.displayName: String
-    get() = when (this) {
-        TrainingProgram.Deload -> "Deload"
-        TrainingProgram.UpperLower -> "Upper-Lower ${this.trainingDaysCount}-day program"
-    }
+    get() = "${this.name} ${this.trainingDaysCount}-day program"

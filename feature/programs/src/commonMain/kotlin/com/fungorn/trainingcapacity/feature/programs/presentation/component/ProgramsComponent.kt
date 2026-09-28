@@ -9,9 +9,13 @@ interface ProgramsComponent {
     val state: StateFlow<ProgramsStore.State>
 
     fun onProgramClick(program: TrainingProgram)
+    fun onProgramSelect(programCode: String)
+    fun onCreateProgramClick()
     fun onBackClick()
 
     sealed interface Output {
         data object NavigateBack : Output
+        data class NavigateToViewProgram(val program: TrainingProgram) : Output
+        data object NavigateToCreateProgram : Output
     }
 }

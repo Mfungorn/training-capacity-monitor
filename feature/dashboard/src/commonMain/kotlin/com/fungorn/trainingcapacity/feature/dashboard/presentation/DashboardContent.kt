@@ -73,6 +73,12 @@ fun DashboardContent(component: DashboardComponent) {
         ) {
             when {
                 state.isLoading -> LoadingIndicator()
+                !state.hasSelectedProgram -> EmptyProgramContent(
+                    onCreateProgramClick = component::onProgramsClick
+                )
+                state.currentMesocycleId == null -> EmptyMesocycleContent(
+                    onCreateMesocycleClick = component::onMesocyclesClick
+                )
                 else -> PullToRefreshBox(
                     isRefreshing = state.isRefreshing,
                     onRefresh = component::onRefresh,
@@ -85,6 +91,72 @@ fun DashboardContent(component: DashboardComponent) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyProgramContent(
+    onCreateProgramClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
+    ) {
+        Text(
+            text = "No program selected",
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Select a training program to get started",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        androidx.compose.material3.Button(
+            onClick = onCreateProgramClick
+        ) {
+            Text("Select Program")
+        }
+    }
+}
+
+@Composable
+private fun EmptyMesocycleContent(
+    onCreateMesocycleClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
+    ) {
+        Text(
+            text = "No active mesocycle",
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Create a mesocycle to start tracking your training",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        androidx.compose.material3.Button(
+            onClick = onCreateMesocycleClick
+        ) {
+            Text("Create Mesocycle")
         }
     }
 }

@@ -6,7 +6,7 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocycleListUseCase
+import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocyclesDataUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.store.MesocyclesStore
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.store.MesocyclesStoreFactory
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.onEach
 class DefaultMesocyclesComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    getMesocycleListUseCase: GetMesocycleListUseCase,
+    getMesocyclesDataUseCase: GetMesocyclesDataUseCase,
     private val onOutput: (MesocyclesComponent.Output) -> Unit
 ) : MesocyclesComponent, ComponentContext by componentContext {
 
@@ -30,7 +30,7 @@ class DefaultMesocyclesComponent(
     private val store = instanceKeeper.getStore {
         MesocyclesStoreFactory(
             storeFactory = storeFactory,
-            getMesocycleListUseCase = getMesocycleListUseCase
+            getMesocyclesDataUseCase = getMesocyclesDataUseCase
         ).create()
     }
 

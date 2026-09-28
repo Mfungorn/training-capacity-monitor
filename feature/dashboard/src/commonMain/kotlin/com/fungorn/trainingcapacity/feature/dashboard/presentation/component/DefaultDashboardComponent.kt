@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStoreFactory
@@ -15,6 +16,7 @@ class DefaultDashboardComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     getDashboardDataUseCase: GetDashboardDataUseCase,
+    getSelectedProgramUseCase: GetSelectedProgramUseCase,
     private val onOutput: (DashboardComponent.Output) -> Unit
 ) : DashboardComponent, ComponentContext by componentContext {
     
@@ -22,6 +24,7 @@ class DefaultDashboardComponent(
         DashboardStoreFactory(
             storeFactory = storeFactory,
             getDashboardDataUseCase = getDashboardDataUseCase,
+            getSelectedProgramUseCase = getSelectedProgramUseCase,
         ).create()
     }
 

@@ -14,14 +14,10 @@ class GetDashboardDataUseCase(
     private val mesocycleRepository: MesocycleRepository,
     private val entryRepository: EntryRepository
 ) {
-    operator fun invoke(): Flow<DashboardData> =
+    operator fun invoke(): Flow<DashboardData?> =
         mesocycleRepository.getSelectedCycle()
             .combine(entryRepository.getAllEntries()) { cycle, entries ->
-                if (cycle != null) {
-                    mapToDashboardData(cycle, entries)
-                } else {
-                    throw IllegalStateException("No active mesocycle")
-                }
+                cycle?.let { mapToDashboardData(it, entries) }
             }
 
     private fun mapToDashboardData(

@@ -82,6 +82,10 @@ class TrainingMesocyclesLocalDataSource(
         cycles.find(TrainingMesocycleDto::isSelected)
     }
 
+    fun isProgramUsedByAnyCycle(programCode: String): Flow<Boolean> = getAllCycles().map { cycles ->
+        cycles.any { it.programCode == programCode }
+    }
+
     // TODO : will be changed later
     private val defaultSelectedMesocycle
         get() = TrainingMesocycleDto(

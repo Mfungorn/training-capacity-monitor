@@ -6,6 +6,7 @@ import com.fungorn.trainingcapacity.feature.dashboard.presentation.component.Das
 import com.fungorn.trainingcapacity.feature.form.presentation.component.FormComponent
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.component.MesocycleDetailComponent
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.component.MesocyclesComponent
+import com.fungorn.trainingcapacity.feature.programs.presentation.component.ProgramDetailComponent
 import com.fungorn.trainingcapacity.feature.programs.presentation.component.ProgramsComponent
 
 interface RootComponent {
@@ -18,5 +19,6 @@ interface RootComponent {
         data class Mesocycles(val component: MesocyclesComponent) : Child
         data class MesocycleDetail(val component: MesocycleDetailComponent) : Child
         data class Programs(val component: ProgramsComponent) : Child
+        data class ProgramDetail(val component: ProgramDetailComponent) : Child
     }
 }

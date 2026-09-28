@@ -6,20 +6,24 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineBootstrapper
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.fungorn.trainingcapacity.core.domain.model.TrainingMesocycle
-import com.fungorn.trainingcapacity.core.domain.model.TrainingProgram
-import com.fungorn.trainingcapacity.core.domain.repository.MesocycleRepository
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.StartNewMesocycleUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.model.Mode
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.model.RirRange
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.model.WeekState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class MesocycleDetailStoreFactory(
     private val storeFactory: StoreFactory,
-    private val mesocycleRepository: MesocycleRepository,
+    private val getMesocycleByIdUseCase: GetMesocycleByIdUseCase,
+    private val getSelectedProgramUseCase: GetSelectedProgramUseCase,
     private val startNewMesocycleUseCase: StartNewMesocycleUseCase
 ) {
 
@@ -64,7 +68,9 @@ class MesocycleDetailStoreFactory(
             if (mesocycleId != null) {
                 scope.launch {
                     try {
-                        val mesocycle = mesocycleRepository.getCycleById(mesocycleId).firstOrNull()
+                        val mesocycle = withContext(Dispatchers.IO) {
+                            getMesocycleByIdUseCase(mesocycleId).firstOrNull()
+                        }
                         if (mesocycle != null) {
                             val weeks = mesocycle.weeks.map { week ->
                                 WeekState(
@@ -148,9 +154,18 @@ class MesocycleDetailStoreFactory(
             scope.launch {
                 dispatch(Msg.StartLoading)
                 try {
+                    val program = withContext(Dispatchers.IO) {
+                        getSelectedProgramUseCase().firstOrNull()
+                    }
+                    if (program == null) {
+                        dispatch(Msg.StopLoading)
+                        dispatch(Msg.SetError("No program selected"))
+                        publish(MesocycleDetailStore.Label.ShowError("No program selected"))
+                        return@launch
+                    }
                     val mesocycle = TrainingMesocycle(
                         id = Uuid.random().toString(),
-                        program = TrainingProgram.UpperLower,
+                        program = program,
                         weeks = currentState.weeks.map { weekState ->
                             TrainingMesocycle.Week(
                                 type = weekState.type,
@@ -161,7 +176,9 @@ class MesocycleDetailStoreFactory(
                         isSelected = true,
                         startedAt = currentState.startDateMillis
                     )
-                    startNewMesocycleUseCase(mesocycle)
+                    withContext(Dispatchers.IO) {
+                        startNewMesocycleUseCase(mesocycle)
+                    }
                     dispatch(Msg.StopLoading)
                     publish(MesocycleDetailStore.Label.MesocycleSaved)
                 } catch (e: Exception) {

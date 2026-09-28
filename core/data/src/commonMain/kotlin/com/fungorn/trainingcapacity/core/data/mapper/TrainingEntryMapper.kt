@@ -2,12 +2,11 @@ package com.fungorn.trainingcapacity.core.data.mapper
 
 import com.fungorn.trainingcapacity.core.data.local.dto.TrainingEntryDto
 import com.fungorn.trainingcapacity.core.domain.model.TrainingEntry
-import com.fungorn.trainingcapacity.core.domain.model.TrainingProgram
 
 fun TrainingEntryDto.toDomain(): TrainingEntry = TrainingEntry(
     id = id,
     mesocycleId = mesocycleId,
-    program = trainingProgram,
+    programId = programId,
     trainingDayNumber = trainingDayNumber,
     weekNumber = weekNumber,
     spentMaximumCapacitySets = spentMaximumCapacitySets,
@@ -24,15 +23,12 @@ fun TrainingEntry.toDto(): TrainingEntryDto = TrainingEntryDto(
     createdAt = createdAt,
 )
 
-private fun TrainingEntry.buildTrainingCode(): String = program.code +
+private fun TrainingEntry.buildTrainingCode(): String = programId +
         "_" + trainingDayNumber +
         "_" + weekNumber
 
-private val TrainingEntryDto.trainingProgram: TrainingProgram
-    get() = when {
-        code.startsWith(TrainingProgram.UpperLower.code) -> TrainingProgram.UpperLower
-        else -> TrainingProgram.Deload
-    }
+private val TrainingEntryDto.programId: String
+    get() = code.split("_").firstOrNull() ?: ""
 
 private val TrainingEntryDto.trainingDayNumber: Int
     get() = code.split("_").drop(1).firstOrNull()?.toIntOrNull() ?: 0

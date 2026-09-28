@@ -7,7 +7,8 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import com.fungorn.trainingcapacity.core.domain.model.TrainingMesocycle
-import com.fungorn.trainingcapacity.core.domain.repository.MesocycleRepository
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.StartNewMesocycleUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.model.RirRange
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.store.MesocycleDetailStore
@@ -24,7 +25,8 @@ import kotlinx.coroutines.flow.onEach
 class DefaultMesocycleDetailComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    mesocycleRepository: MesocycleRepository,
+    getMesocycleByIdUseCase: GetMesocycleByIdUseCase,
+    getSelectedProgramUseCase: GetSelectedProgramUseCase,
     startNewMesocycleUseCase: StartNewMesocycleUseCase,
     private val mesocycleId: String?,
     private val onOutput: (MesocycleDetailComponent.Output) -> Unit
@@ -35,7 +37,8 @@ class DefaultMesocycleDetailComponent(
     private val store = instanceKeeper.getStore {
         MesocycleDetailStoreFactory(
             storeFactory = storeFactory,
-            mesocycleRepository = mesocycleRepository,
+            getMesocycleByIdUseCase = getMesocycleByIdUseCase,
+            getSelectedProgramUseCase = getSelectedProgramUseCase,
             startNewMesocycleUseCase = startNewMesocycleUseCase
         ).create(mesocycleId)
     }

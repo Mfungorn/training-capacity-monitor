@@ -7,15 +7,19 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineBootstrapper
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.fungorn.trainingcapacity.feature.mesocycles.domain.model.MesocycleItem
-import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocycleListUseCase
+import com.fungorn.trainingcapacity.feature.mesocycles.domain.model.MesocyclesData
+import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocyclesDataUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.model.MesocycleListItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class MesocyclesStoreFactory(
     private val storeFactory: StoreFactory,
-    private val getMesocycleListUseCase: GetMesocycleListUseCase
+    private val getMesocyclesDataUseCase: GetMesocyclesDataUseCase
 ) {
 
     fun create(): MesocyclesStore =
@@ -29,7 +33,10 @@ class MesocyclesStoreFactory(
             ) {}
 
     private sealed interface Action {
-        data class MesocyclesLoaded(val mesocycles: List<MesocycleItem>) : Action
+        data class MesocyclesLoaded(
+            val mesocyclesData: MesocyclesData
+        ) : Action
+
         data class LoadError(val message: String) : Action
     }
 
@@ -44,7 +51,8 @@ class MesocyclesStoreFactory(
 
     private inner class BootstrapperImpl : CoroutineBootstrapper<Action>() {
         override fun invoke() {
-            getMesocycleListUseCase()
+            getMesocyclesDataUseCase()
+                .flowOn(Dispatchers.IO)
                 .onEach { mesocycles ->
                     dispatch(Action.MesocyclesLoaded(mesocycles))
                 }
@@ -61,9 +69,12 @@ class MesocyclesStoreFactory(
         override fun executeAction(action: Action) {
             when (action) {
                 is Action.MesocyclesLoaded -> {
-                    val currentMesocycle = action.mesocycles.find { it.isSelected }
-                    val previousMesocycles = action.mesocycles.filter { !it.isSelected }
-                    dispatch(Msg.MesocyclesLoaded(previousMesocycles, currentMesocycle))
+                    dispatch(
+                        Msg.MesocyclesLoaded(
+                            mesocycles = action.mesocyclesData.previousMesocycles,
+                            currentMesocycle = action.mesocyclesData.currentMesocycle
+                        )
+                    )
                 }
 
                 is Action.LoadError -> dispatch(Msg.SetError(action.message))

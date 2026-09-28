@@ -16,6 +16,7 @@ interface DashboardStore : Store<Intent, State, Label> {
 
     @Stable
     data class State(
+        val hasSelectedProgram: Boolean = false,
         val currentMesocycleId: String? = null,
         val currentMesocycleName: String = "-",
         val currentMesocycleWeekNumber: Int = 0,
