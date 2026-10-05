@@ -2,6 +2,11 @@
 
 A comprehensive fitness tracking application built with Kotlin Multiplatform, designed to help athletes and fitness enthusiasts monitor their training capacity, manage mesocycles, and track workout progress across Android and iOS platforms.
 
+<img width="630" height="1280" alt="telegram-cloud-photo-size-2-5339508114555871007-y" src="https://github.com/user-attachments/assets/f5cce319-19d6-4131-851f-d0bbd7935ea4" />
+<img width="630" height="1280" alt="telegram-cloud-photo-size-2-5339508114555871013-y" src="https://github.com/user-attachments/assets/c04edcb8-df2f-4836-9212-8184b08f1bbc" />
+<img width="630" height="1280" alt="telegram-cloud-photo-size-2-5339508114555871009-y" src="https://github.com/user-attachments/assets/3c31e5e3-7470-485d-9107-61b057efd1f7" />
+
+
 ## Features
 
 - **Dashboard**: Visual overview of training capacity with difficulty graphs and performance metrics
