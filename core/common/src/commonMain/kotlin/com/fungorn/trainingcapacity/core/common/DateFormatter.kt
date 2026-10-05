@@ -11,3 +11,10 @@ fun formatMillisToDate(milliseconds: Long): String {
     val formatted = "${localDateTime.day}/${localDateTime.month.number}"
     return formatted
 }
+
+fun formatMillisToIsoDate(milliseconds: Long): String {
+    val localDate = Instant.fromEpochMilliseconds(milliseconds)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+        .date
+    return localDate.toString()
+}

@@ -2,6 +2,8 @@ package com.fungorn.trainingcapacity.feature.dashboard.presentation.store
 
 import androidx.compose.runtime.Stable
 import com.arkivanov.mvikotlin.core.store.Store
+import com.fungorn.trainingcapacity.core.domain.model.SessionStatistics
+import com.fungorn.trainingcapacity.core.domain.model.TrainingGroup
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.graph.DashboardDifficultyGraphData
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore.Intent
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.store.DashboardStore.Label
@@ -32,6 +34,9 @@ interface DashboardStore : Store<Intent, State, Label> {
         val spentMaximumCapacitySetsThisWeek: Int = 0,
         val totalMaximumCapacitySetsThisWeek: Int = 0,
         val graphData: DashboardDifficultyGraphData = DashboardDifficultyGraphData(),
+        val mesocycleSessions: SessionStatistics = SessionStatistics.EMPTY,
+        val currentWeekSessions: SessionStatistics = SessionStatistics.EMPTY,
+        val focusGroups: Set<TrainingGroup> = emptySet(),
         val isLoading: Boolean = true,
         val isRefreshing: Boolean = false,
         val error: String? = null

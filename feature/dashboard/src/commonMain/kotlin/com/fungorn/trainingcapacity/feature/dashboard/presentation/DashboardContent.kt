@@ -3,11 +3,14 @@ package com.fungorn.trainingcapacity.feature.dashboard.presentation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -15,11 +18,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,6 +42,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.fungorn.trainingcapacity.core.common.formatDecimal
+import com.fungorn.trainingcapacity.core.common.formatDuration
+import com.fungorn.trainingcapacity.core.common.formatPercent
+import com.fungorn.trainingcapacity.core.domain.model.TrainingGroup
 import com.fungorn.trainingcapacity.core.ui.components.LoadingIndicator
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.component.DashboardComponent
 import com.fungorn.trainingcapacity.feature.dashboard.presentation.graph.DashboardDifficultyGraph
@@ -50,12 +62,32 @@ fun DashboardContent(component: DashboardComponent) {
                 title = { Text("Training Capacity") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                ),
+                actions = {
+                    if (!state.currentMesocycleId.isNullOrEmpty()) {
+                        IconButton(onClick = component::onStatisticsClick) {
+                            Icon(
+                                Icons.Default.BarChart,
+                                contentDescription = "Mesocycle statistics"
+                            )
+                        }
+                    }
+                    IconButton(onClick = component::onProgramsClick) {
+                        Icon(Icons.Default.FitnessCenter, contentDescription = "Programs")
+                    }
+                }
             )
         },
         floatingActionButton = {
-            if (!state.currentMesocycleId.isNullOrEmpty()) {
-                FloatingActionButton(
+            when {
+                state.currentMesocycleId.isNullOrEmpty() -> Unit
+                state.mesocycleSessions.isComplete -> ExtendedFloatingActionButton(
+                    onClick = component::onStatisticsClick,
+                    icon = { Icon(Icons.Default.Flag, contentDescription = null) },
+                    text = { Text("Finish mesocycle") }
+                )
+
+                else -> FloatingActionButton(
                     onClick = component::onAddClick
                 ) {
                     Icon(
@@ -176,13 +208,15 @@ private fun DashboardScrollableContent(
     ) {
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Current training mesocycle: ${state.currentMesocycleName}",
+            text = "Current training mesocycle: ${state.currentMesocycleName}" +
+                    if (state.mesocycleSessions.isComplete) " · completed" else "",
             style = MaterialTheme.typography.titleMedium
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(IntrinsicSize.Max)
         ) {
             DashboardDataCard(
                 modifier = Modifier
@@ -217,6 +251,7 @@ private fun DashboardScrollableContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(IntrinsicSize.Max)
         ) {
             DashboardDataCard(
                 modifier = Modifier
@@ -240,6 +275,56 @@ private fun DashboardScrollableContent(
                 title = "${state.spentMaximumCapacitySetsThisWeek} / ${state.totalMaximumCapacitySetsThisWeek}",
                 subtitle = "Current week max RIRs",
                 onClick = component::onProgramsClick
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Adherence & recovery",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max)
+        ) {
+            val week = state.currentWeekSessions
+            val meso = state.mesocycleSessions
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = "${week.adherence?.let(::formatPercent) ?: "-"} / ${meso.adherence?.let(::formatPercent) ?: "-"}",
+                subtitle = "Adherence wk / meso",
+                onClick = component::onMesocyclesClick
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = "${week.averageReadiness.orDash()} / ${week.averageFatigue.orDash()}",
+                subtitle = "Readiness / fatigue",
+                onClick = component::onMesocyclesClick
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            DashboardDataCard(
+                modifier = Modifier
+                    .weight(1f),
+                title = formatDuration(meso.totalDurationMinutes),
+                subtitle = "Meso training time",
+                onClick = component::onMesocyclesClick
+            )
+        }
+        if (state.focusGroups.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Focus: ${
+                    state.focusGroups.joinToString(
+                        ", ",
+                        transform = TrainingGroup::displayName
+                    )
+                }",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -269,6 +354,8 @@ private fun DashboardScrollableContent(
     }
 }
 
+private fun Float?.orDash(): String = this?.let(::formatDecimal) ?: "-"
+
 @Composable
 private fun DashboardDataCard(
     title: String,
@@ -278,6 +365,7 @@ private fun DashboardDataCard(
 ) {
     Card(
         modifier = modifier
+            .fillMaxHeight()
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
@@ -290,8 +378,8 @@ private fun DashboardDataCard(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(96.dp)
+                .fillMaxSize()
+                .heightIn(min = 96.dp)
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

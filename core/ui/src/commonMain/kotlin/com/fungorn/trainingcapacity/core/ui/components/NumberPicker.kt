@@ -2,8 +2,15 @@ package com.fungorn.trainingcapacity.core.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,8 +29,14 @@ fun NumberPicker(
     onValueChange: (Int) -> Unit,
     minValue: Int = 0,
     maxValue: Int = Int.MAX_VALUE,
+    step: Int = 1,
     modifier: Modifier = Modifier
 ) {
+    val next = (value + step).coerceAtMost(maxValue)
+    val previous = (value - step).coerceAtLeast(minValue)
+    val canIncrement = value < maxValue
+    val canDecrement = value > minValue
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -39,30 +52,49 @@ fun NumberPicker(
             verticalArrangement = Arrangement.Center
         ) {
             TextButton(
-                onClick = { if (value < maxValue) onValueChange(value + 1) },
-                enabled = value < maxValue
+                onClick = { if (canIncrement) onValueChange(next) },
+                enabled = canIncrement
             ) {
                 Text(
-                    text = "${value + 1}",
+                    text = "$next",
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
             }
 
-            Text(
-                text = "$value",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                FilledTonalIconButton(
+                    onClick = { if (canDecrement) onValueChange(previous) },
+                    enabled = canDecrement
+                ) {
+                    Icon(Icons.Default.Remove, contentDescription = "Decrease $label")
+                }
+                Text(
+                    text = "$value",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .widthIn(min = 64.dp)
+                        .padding(vertical = 4.dp)
+                )
+                FilledTonalIconButton(
+                    onClick = { if (canIncrement) onValueChange(next) },
+                    enabled = canIncrement
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Increase $label")
+                }
+            }
 
             TextButton(
-                onClick = { if (value > minValue) onValueChange(value - 1) },
-                enabled = value > minValue
+                onClick = { if (canDecrement) onValueChange(previous) },
+                enabled = canDecrement
             ) {
                 Text(
-                    text = "${value - 1}",
+                    text = "$previous",
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )

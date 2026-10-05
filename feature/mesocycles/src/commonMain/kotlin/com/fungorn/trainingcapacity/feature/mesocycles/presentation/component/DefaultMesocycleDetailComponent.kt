@@ -6,8 +6,12 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import com.fungorn.trainingcapacity.core.domain.model.GroupPriority
+import com.fungorn.trainingcapacity.core.domain.model.TrainingGroup
 import com.fungorn.trainingcapacity.core.domain.model.TrainingMesocycle
-import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.ExportMesocycleStatisticsUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetAllProgramsUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.StartNewMesocycleUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.model.RirRange
@@ -25,9 +29,11 @@ import kotlinx.coroutines.flow.onEach
 class DefaultMesocycleDetailComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    getMesocycleByIdUseCase: GetMesocycleByIdUseCase,
+    getMesocycleStatisticsUseCase: GetMesocycleStatisticsUseCase,
+    getAllProgramsUseCase: GetAllProgramsUseCase,
     getSelectedProgramUseCase: GetSelectedProgramUseCase,
     startNewMesocycleUseCase: StartNewMesocycleUseCase,
+    exportMesocycleStatisticsUseCase: ExportMesocycleStatisticsUseCase,
     private val mesocycleId: String?,
     private val onOutput: (MesocycleDetailComponent.Output) -> Unit
 ) : MesocycleDetailComponent, ComponentContext by componentContext {
@@ -37,9 +43,11 @@ class DefaultMesocycleDetailComponent(
     private val store = instanceKeeper.getStore {
         MesocycleDetailStoreFactory(
             storeFactory = storeFactory,
-            getMesocycleByIdUseCase = getMesocycleByIdUseCase,
+            getMesocycleStatisticsUseCase = getMesocycleStatisticsUseCase,
+            getAllProgramsUseCase = getAllProgramsUseCase,
             getSelectedProgramUseCase = getSelectedProgramUseCase,
-            startNewMesocycleUseCase = startNewMesocycleUseCase
+            startNewMesocycleUseCase = startNewMesocycleUseCase,
+            exportMesocycleStatisticsUseCase = exportMesocycleStatisticsUseCase
         ).create(mesocycleId)
     }
 
@@ -81,6 +89,22 @@ class DefaultMesocycleDetailComponent(
 
     override fun onRemoveWeek(index: Int) {
         store.accept(MesocycleDetailStore.Intent.RemoveWeek(index))
+    }
+
+    override fun onProgramSelect(code: String) {
+        store.accept(MesocycleDetailStore.Intent.SelectProgram(code))
+    }
+
+    override fun onGroupPriorityChange(group: TrainingGroup, priority: GroupPriority?) {
+        store.accept(MesocycleDetailStore.Intent.SetGroupPriority(group, priority))
+    }
+
+    override fun onExportClick() {
+        store.accept(MesocycleDetailStore.Intent.Export)
+    }
+
+    override fun onStartNewMesocycleClick() {
+        onOutput(MesocycleDetailComponent.Output.NavigateToCreateMesocycle)
     }
 
     override fun onSaveClick() {

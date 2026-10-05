@@ -9,4 +9,14 @@ data class TrainingEntry(
     val spentMaximumCapacitySets: Int,
     val overallDifficulty: Int,
     val createdAt: Long,
-)
+    val isCompleted: Boolean = true,
+    val durationMinutes: Int = 0,
+    val readiness: Int? = null,
+    val fatigue: Int? = null,
+    val muscleGroupFatigue: Map<TrainingGroup, Int> = emptyMap(),
+) {
+    companion object {
+        const val MIN_FEELING = 1
+        const val MAX_FEELING = 5
+    }
+}

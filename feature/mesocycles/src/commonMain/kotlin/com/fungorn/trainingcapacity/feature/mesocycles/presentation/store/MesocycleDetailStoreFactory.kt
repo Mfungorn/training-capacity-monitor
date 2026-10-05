@@ -5,8 +5,14 @@ import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineBootstrapper
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+import com.fungorn.trainingcapacity.core.domain.model.GroupPriority
+import com.fungorn.trainingcapacity.core.domain.model.MesocycleStatistics
+import com.fungorn.trainingcapacity.core.domain.model.TrainingGroup
 import com.fungorn.trainingcapacity.core.domain.model.TrainingMesocycle
-import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.model.TrainingProgram
+import com.fungorn.trainingcapacity.core.domain.usecase.ExportMesocycleStatisticsUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetAllProgramsUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.StartNewMesocycleUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.presentation.model.Mode
@@ -22,9 +28,11 @@ import kotlin.uuid.Uuid
 
 class MesocycleDetailStoreFactory(
     private val storeFactory: StoreFactory,
-    private val getMesocycleByIdUseCase: GetMesocycleByIdUseCase,
+    private val getMesocycleStatisticsUseCase: GetMesocycleStatisticsUseCase,
+    private val getAllProgramsUseCase: GetAllProgramsUseCase,
     private val getSelectedProgramUseCase: GetSelectedProgramUseCase,
-    private val startNewMesocycleUseCase: StartNewMesocycleUseCase
+    private val startNewMesocycleUseCase: StartNewMesocycleUseCase,
+    private val exportMesocycleStatisticsUseCase: ExportMesocycleStatisticsUseCase
 ) {
 
     fun create(mesocycleId: String? = null): MesocycleDetailStore =
@@ -35,29 +43,27 @@ class MesocycleDetailStoreFactory(
                     mode = if (mesocycleId == null) Mode.CREATE else Mode.VIEW
                 ),
                 bootstrapper = BootstrapperImpl(mesocycleId),
-                executorFactory = ::ExecutorImpl,
+                executorFactory = { ExecutorImpl(mesocycleId) },
                 reducer = ReducerImpl
             ) {}
 
     private sealed interface Action {
-        data class MesocycleLoaded(
-            val startDateMillis: Long,
-            val weeks: List<WeekState>
-        ) : Action
-
+        data class MesocycleLoaded(val statistics: MesocycleStatistics) : Action
+        data class ProgramsLoaded(val programs: List<TrainingProgram>, val selectedCode: String?) :
+            Action
         data class LoadError(val message: String) : Action
     }
 
     private sealed interface Msg {
         data object StartLoading : Msg
         data object StopLoading : Msg
-        data class MesocycleLoaded(
-            val startDateMillis: Long,
-            val weeks: List<WeekState>
-        ) : Msg
-
+        data class MesocycleLoaded(val statistics: MesocycleStatistics) : Msg
         data class UpdateStartDate(val millis: Long) : Msg
         data class SetWeeks(val weeks: List<WeekState>) : Msg
+        data class SetPrograms(val programs: List<TrainingProgram>, val selectedCode: String?) : Msg
+        data class SelectProgram(val code: String) : Msg
+        data class SetGroupPriorities(val priorities: Map<TrainingGroup, GroupPriority>) : Msg
+        data class SetExporting(val isExporting: Boolean) : Msg
         data class SetError(val message: String?) : Msg
     }
 
@@ -65,23 +71,31 @@ class MesocycleDetailStoreFactory(
         private val mesocycleId: String?
     ) : CoroutineBootstrapper<Action>() {
         override fun invoke() {
-            if (mesocycleId != null) {
+            if (mesocycleId == null) {
                 scope.launch {
                     try {
-                        val mesocycle = withContext(Dispatchers.IO) {
-                            getMesocycleByIdUseCase(mesocycleId).firstOrNull()
+                        val (programs, selected) = withContext(Dispatchers.IO) {
+                            getAllProgramsUseCase().firstOrNull()
+                                .orEmpty() to getSelectedProgramUseCase().firstOrNull()
                         }
-                        if (mesocycle != null) {
-                            val weeks = mesocycle.weeks.map { week ->
-                                WeekState(
-                                    type = week.type,
-                                    rirRange = RirRange.entries.find {
-                                        it.lowerEnd == week.maximumCapacityLowerEnd &&
-                                                it.upperEnd == week.maximumCapacityUpperEnd
-                                    } ?: RirRange.RIR_2_4
-                                )
-                            }
-                            dispatch(Action.MesocycleLoaded(mesocycle.startedAt, weeks))
+                        dispatch(
+                            Action.ProgramsLoaded(
+                                programs,
+                                selected?.code ?: programs.firstOrNull()?.code
+                            )
+                        )
+                    } catch (e: Exception) {
+                        dispatch(Action.LoadError(e.message ?: "Failed to load programs"))
+                    }
+                }
+            } else {
+                scope.launch {
+                    try {
+                        val statistics = withContext(Dispatchers.IO) {
+                            getMesocycleStatisticsUseCase(mesocycleId).firstOrNull()
+                        }
+                        if (statistics != null) {
+                            dispatch(Action.MesocycleLoaded(statistics))
                         } else {
                             dispatch(Action.LoadError("Mesocycle not found"))
                         }
@@ -93,15 +107,17 @@ class MesocycleDetailStoreFactory(
         }
     }
 
-    private inner class ExecutorImpl :
-        CoroutineExecutor<MesocycleDetailStore.Intent, Action, MesocycleDetailStore.State, Msg, MesocycleDetailStore.Label>() {
+    private inner class ExecutorImpl(
+        private val mesocycleId: String?
+    ) : CoroutineExecutor<MesocycleDetailStore.Intent, Action, MesocycleDetailStore.State, Msg, MesocycleDetailStore.Label>() {
 
         override fun executeAction(action: Action) {
             when (action) {
-                is Action.MesocycleLoaded -> dispatch(
-                    Msg.MesocycleLoaded(
-                        action.startDateMillis,
-                        action.weeks
+                is Action.MesocycleLoaded -> dispatch(Msg.MesocycleLoaded(action.statistics))
+                is Action.ProgramsLoaded -> dispatch(
+                    Msg.SetPrograms(
+                        action.programs,
+                        action.selectedCode
                     )
                 )
 
@@ -136,33 +152,60 @@ class MesocycleDetailStoreFactory(
 
                 is MesocycleDetailStore.Intent.RemoveWeek -> {
                     val currentWeeks = state().weeks.toMutableList()
-                    if (intent.index in currentWeeks.indices && currentWeeks.size > 1) {
+                    if (intent.index in currentWeeks.indices) {
                         currentWeeks.removeAt(intent.index)
                         dispatch(Msg.SetWeeks(currentWeeks))
                     }
                 }
 
+                is MesocycleDetailStore.Intent.SelectProgram -> dispatch(Msg.SelectProgram(intent.code))
+                is MesocycleDetailStore.Intent.SetGroupPriority -> setGroupPriority(
+                    intent.group,
+                    intent.priority
+                )
                 is MesocycleDetailStore.Intent.Save -> saveMesocycle()
+                is MesocycleDetailStore.Intent.Export -> exportStatistics()
             }
+        }
+
+        private fun setGroupPriority(group: TrainingGroup, priority: GroupPriority?) {
+            val current = state()
+            if (!current.isCreateMode) return
+            val isNewFocus =
+                priority == GroupPriority.FOCUS && current.groupPriorities[group] != GroupPriority.FOCUS
+            if (isNewFocus && !current.canAddFocusGroup) {
+                publish(
+                    MesocycleDetailStore.Label.ShowError(
+                        "Only ${TrainingMesocycle.MAX_FOCUS_GROUPS} focus groups are allowed"
+                    )
+                )
+                return
+            }
+            val updated = if (priority == null) {
+                current.groupPriorities - group
+            } else {
+                current.groupPriorities + (group to priority)
+            }
+            dispatch(Msg.SetGroupPriorities(updated))
         }
 
         @OptIn(ExperimentalUuidApi::class)
         private fun saveMesocycle() {
             val currentState = state()
             if (!currentState.isCreateMode) return
+            val program = currentState.selectedProgram
+            if (program == null) {
+                publish(MesocycleDetailStore.Label.ShowError("No program selected"))
+                return
+            }
+            if (currentState.weeks.isEmpty()) {
+                publish(MesocycleDetailStore.Label.ShowError("Add at least one week"))
+                return
+            }
 
             scope.launch {
                 dispatch(Msg.StartLoading)
                 try {
-                    val program = withContext(Dispatchers.IO) {
-                        getSelectedProgramUseCase().firstOrNull()
-                    }
-                    if (program == null) {
-                        dispatch(Msg.StopLoading)
-                        dispatch(Msg.SetError("No program selected"))
-                        publish(MesocycleDetailStore.Label.ShowError("No program selected"))
-                        return@launch
-                    }
                     val mesocycle = TrainingMesocycle(
                         id = Uuid.random().toString(),
                         program = program,
@@ -174,7 +217,8 @@ class MesocycleDetailStoreFactory(
                             )
                         },
                         isSelected = true,
-                        startedAt = currentState.startDateMillis
+                        startedAt = currentState.startDateMillis,
+                        groupPriorities = currentState.groupPriorities
                     )
                     withContext(Dispatchers.IO) {
                         startNewMesocycleUseCase(mesocycle)
@@ -192,6 +236,27 @@ class MesocycleDetailStoreFactory(
                 }
             }
         }
+
+        private fun exportStatistics() {
+            val id = mesocycleId ?: return
+            if (state().isExporting) return
+            scope.launch {
+                dispatch(Msg.SetExporting(true))
+                try {
+                    withContext(Dispatchers.IO) {
+                        exportMesocycleStatisticsUseCase(id)
+                    }
+                } catch (e: Exception) {
+                    publish(
+                        MesocycleDetailStore.Label.ShowError(
+                            e.message ?: "Failed to export statistics"
+                        )
+                    )
+                } finally {
+                    dispatch(Msg.SetExporting(false))
+                }
+            }
+        }
     }
 
     private object ReducerImpl : Reducer<MesocycleDetailStore.State, Msg> {
@@ -200,11 +265,15 @@ class MesocycleDetailStoreFactory(
                 is Msg.StartLoading -> copy(isLoading = true)
                 is Msg.StopLoading -> copy(isLoading = false)
                 is Msg.MesocycleLoaded -> copy(
-                    startDateMillis = msg.startDateMillis,
+                    startDateMillis = msg.statistics.mesocycle.startedAt,
                     weeks = weeks.apply {
                         clear()
-                        addAll(msg.weeks)
+                        addAll(msg.statistics.mesocycle.weeks.map(::toWeekState))
                     },
+                    groupPriorities = msg.statistics.mesocycle.groupPriorities,
+                    programs = listOf(msg.statistics.mesocycle.program),
+                    selectedProgramCode = msg.statistics.mesocycle.program.code,
+                    statistics = msg.statistics,
                     isLoading = false
                 )
 
@@ -216,7 +285,23 @@ class MesocycleDetailStoreFactory(
                     }
                 )
 
+                is Msg.SetPrograms -> copy(
+                    programs = msg.programs,
+                    selectedProgramCode = msg.selectedCode
+                )
+
+                is Msg.SelectProgram -> copy(selectedProgramCode = msg.code)
+                is Msg.SetGroupPriorities -> copy(groupPriorities = msg.priorities)
+                is Msg.SetExporting -> copy(isExporting = msg.isExporting)
                 is Msg.SetError -> copy(errorMessage = msg.message)
             }
+
+        private fun toWeekState(week: TrainingMesocycle.Week) = WeekState(
+            type = week.type,
+            rirRange = RirRange.entries.find {
+                it.lowerEnd == week.maximumCapacityLowerEnd &&
+                        it.upperEnd == week.maximumCapacityUpperEnd
+            } ?: RirRange.RIR_2_4
+        )
     }
 }

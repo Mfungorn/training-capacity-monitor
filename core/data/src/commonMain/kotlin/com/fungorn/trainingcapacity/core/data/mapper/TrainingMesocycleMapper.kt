@@ -1,6 +1,7 @@
 package com.fungorn.trainingcapacity.core.data.mapper
 
 import com.fungorn.trainingcapacity.core.data.local.dto.TrainingMesocycleDto
+import com.fungorn.trainingcapacity.core.domain.model.GroupPriority
 import com.fungorn.trainingcapacity.core.domain.model.TrainingMesocycle
 import com.fungorn.trainingcapacity.core.domain.model.TrainingProgram
 
@@ -12,6 +13,12 @@ fun TrainingMesocycleDto.toDomain(program: TrainingProgram): TrainingMesocycle =
     },
     isSelected = isSelected,
     startedAt = startedAt,
+    groupPriorities = groupPriorities.entries.mapNotNull { (groupName, priorityName) ->
+        val group = groupName.toTrainingGroupOrNull() ?: return@mapNotNull null
+        val priority = runCatching { GroupPriority.valueOf(priorityName) }.getOrNull()
+            ?: return@mapNotNull null
+        group to priority
+    }.toMap(),
 )
 
 fun TrainingMesocycle.toDto(): TrainingMesocycleDto = TrainingMesocycleDto(
@@ -22,6 +29,9 @@ fun TrainingMesocycle.toDto(): TrainingMesocycleDto = TrainingMesocycleDto(
     },
     isSelected = isSelected,
     startedAt = startedAt,
+    groupPriorities = groupPriorities.entries.associate { (group, priority) ->
+        group.name to priority.name
+    },
 )
 
 private fun TrainingMesocycleDto.WeekDto.toDomain(): TrainingMesocycle.Week =

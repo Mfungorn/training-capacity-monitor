@@ -56,4 +56,9 @@ class DefaultDashboardComponent(
     override fun onAddClick() {
         onOutput(DashboardComponent.Output.NavigateToForm)
     }
+
+    override fun onStatisticsClick() {
+        val mesocycleId = state.value.currentMesocycleId ?: return
+        onOutput(DashboardComponent.Output.NavigateToStatistics(mesocycleId))
+    }
 }

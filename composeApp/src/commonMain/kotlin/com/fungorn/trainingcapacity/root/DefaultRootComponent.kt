@@ -6,14 +6,16 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.fungorn.trainingcapacity.core.common.DispatcherProvider
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.CreateProgramUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.ExportMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetAllProgramsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
-import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetProgramByCodeUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.SelectProgramUseCase
@@ -45,7 +47,8 @@ class DefaultRootComponent(
     private val getEntryByIdUseCase: GetEntryByIdUseCase,
     private val getCurrentTrainingContextUseCase: GetCurrentTrainingContextUseCase,
     private val getMesocyclesDataUseCase: GetMesocyclesDataUseCase,
-    private val getMesocycleByIdUseCase: GetMesocycleByIdUseCase,
+    private val getMesocycleStatisticsUseCase: GetMesocycleStatisticsUseCase,
+    private val exportMesocycleStatisticsUseCase: ExportMesocycleStatisticsUseCase,
     private val startNewMesocycleUseCase: StartNewMesocycleUseCase,
     private val getAllProgramsUseCase: GetAllProgramsUseCase,
     private val getSelectedProgramUseCase: GetSelectedProgramUseCase,
@@ -113,6 +116,7 @@ class DefaultRootComponent(
             storeFactory = storeFactory,
             addEntryUseCase = addEntryUseCase,
             getEntryByIdUseCase = getEntryByIdUseCase,
+            getAllProgramsUseCase = getAllProgramsUseCase,
             getCurrentTrainingContextUseCase = getCurrentTrainingContextUseCase,
             entryId = entryId,
             onOutput = ::onFormOutput
@@ -133,7 +137,9 @@ class DefaultRootComponent(
         DefaultMesocycleDetailComponent(
             componentContext = componentContext,
             storeFactory = storeFactory,
-            getMesocycleByIdUseCase = getMesocycleByIdUseCase,
+            getMesocycleStatisticsUseCase = getMesocycleStatisticsUseCase,
+            exportMesocycleStatisticsUseCase = exportMesocycleStatisticsUseCase,
+            getAllProgramsUseCase = getAllProgramsUseCase,
             getSelectedProgramUseCase = getSelectedProgramUseCase,
             startNewMesocycleUseCase = startNewMesocycleUseCase,
             mesocycleId = mesocycleId,
@@ -175,6 +181,9 @@ class DefaultRootComponent(
 
             is DashboardComponent.Output.NavigateToForm ->
                 navigation.push(Config.Form(null))
+
+            is DashboardComponent.Output.NavigateToStatistics ->
+                navigation.push(Config.MesocycleDetail(output.mesocycleId))
         }
     }
 
@@ -204,6 +213,8 @@ class DefaultRootComponent(
     private fun onMesocycleDetailOutput(output: MesocycleDetailComponent.Output) {
         when (output) {
             MesocycleDetailComponent.Output.NavigateBack -> navigation.pop()
+            MesocycleDetailComponent.Output.NavigateToCreateMesocycle ->
+                navigation.replaceCurrent(Config.MesocycleDetail(null))
         }
     }
 

@@ -5,17 +5,20 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.fungorn.trainingcapacity.core.common.DispatcherProvider
+import com.fungorn.trainingcapacity.core.domain.export.FileExporter
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.CreateProgramUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.ExportMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetAllProgramsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
-import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetProgramByCodeUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.SelectProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.StartNewMesocycleUseCase
 import com.fungorn.trainingcapacity.di.allModules
 import com.fungorn.trainingcapacity.di.createDataStore
+import com.fungorn.trainingcapacity.export.IosFileExporter
 import com.fungorn.trainingcapacity.feature.dashboard.domain.usecase.GetDashboardDataUseCase
 import com.fungorn.trainingcapacity.feature.form.domain.usecase.GetCurrentTrainingContextUseCase
 import com.fungorn.trainingcapacity.feature.mesocycles.domain.usecase.GetMesocyclesDataUseCase
@@ -25,7 +28,10 @@ import org.koin.dsl.module
 
 private val koin = startKoin {
     modules(
-        module { single { createDataStore() } }
+        module {
+            single { createDataStore() }
+            single<FileExporter> { IosFileExporter() }
+        }
     )
     modules(allModules)
 }.koin
@@ -41,7 +47,8 @@ private val rootComponent = DefaultRootComponent(
     getEntryByIdUseCase = koin.get<GetEntryByIdUseCase>(),
     getCurrentTrainingContextUseCase = koin.get<GetCurrentTrainingContextUseCase>(),
     getMesocyclesDataUseCase = koin.get<GetMesocyclesDataUseCase>(),
-    getMesocycleByIdUseCase = koin.get<GetMesocycleByIdUseCase>(),
+    getMesocycleStatisticsUseCase = koin.get<GetMesocycleStatisticsUseCase>(),
+    exportMesocycleStatisticsUseCase = koin.get<ExportMesocycleStatisticsUseCase>(),
     startNewMesocycleUseCase = koin.get<StartNewMesocycleUseCase>(),
     getAllProgramsUseCase = koin.get<GetAllProgramsUseCase>(),
     getSelectedProgramUseCase = koin.get<GetSelectedProgramUseCase>(),

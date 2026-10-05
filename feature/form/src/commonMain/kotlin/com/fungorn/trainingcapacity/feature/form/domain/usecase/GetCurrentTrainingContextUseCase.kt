@@ -31,7 +31,8 @@ class GetCurrentTrainingContextUseCase(
                 }.coerceIn(0, cycle.weeks.size - 1)
 
                 // Training day within current week
-                val completedDaysThisWeek = completedTrainingDays % trainingDaysPerWeek
+                val completedDaysThisWeek =
+                    completedTrainingDays % trainingDaysPerWeek.coerceAtLeast(1)
                 val nextTrainingDayNumber = completedDaysThisWeek + 1
 
                 TrainingContext(

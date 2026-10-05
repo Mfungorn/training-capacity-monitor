@@ -15,9 +15,7 @@ fun TrainingProgramDto.toDomain(): TrainingProgram = TrainingProgram(
 fun TrainingDayDto.toDomain(): TrainingDay = TrainingDay(
     id = id,
     name = name,
-    muscleGroups = muscleGroups.mapNotNull { groupName ->
-        runCatching { TrainingGroup.valueOf(groupName) }.getOrNull()
-    }.toSet()
+    muscleGroups = muscleGroups.mapNotNull(String::toTrainingGroupOrNull).toSet()
 )
 
 fun TrainingProgram.toDto(): TrainingProgramDto = TrainingProgramDto(

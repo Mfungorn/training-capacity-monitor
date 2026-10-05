@@ -154,6 +154,9 @@ class DashboardStoreFactory(
                                     addAll(graphEntries)
                                 }
                             ),
+                            mesocycleSessions = data.mesocycleSessions,
+                            currentWeekSessions = data.currentWeekSessions,
+                            focusGroups = data.focusGroups,
                             isLoading = false,
                             isRefreshing = false,
                             error = null

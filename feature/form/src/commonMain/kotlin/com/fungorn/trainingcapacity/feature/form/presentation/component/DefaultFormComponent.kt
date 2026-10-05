@@ -6,7 +6,9 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import com.fungorn.trainingcapacity.core.domain.model.TrainingGroup
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetAllProgramsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
 import com.fungorn.trainingcapacity.feature.form.domain.usecase.GetCurrentTrainingContextUseCase
 import com.fungorn.trainingcapacity.feature.form.presentation.store.FormStore
@@ -25,6 +27,7 @@ class DefaultFormComponent(
     storeFactory: StoreFactory,
     addEntryUseCase: AddEntryUseCase,
     getEntryByIdUseCase: GetEntryByIdUseCase,
+    getAllProgramsUseCase: GetAllProgramsUseCase,
     getCurrentTrainingContextUseCase: GetCurrentTrainingContextUseCase,
     private val entryId: String?,
     private val onOutput: (FormComponent.Output) -> Unit
@@ -37,6 +40,7 @@ class DefaultFormComponent(
             storeFactory = storeFactory,
             addEntryUseCase = addEntryUseCase,
             getEntryByIdUseCase = getEntryByIdUseCase,
+            getAllProgramsUseCase = getAllProgramsUseCase,
             getCurrentTrainingContextUseCase = getCurrentTrainingContextUseCase
         ).create(entryId)
     }
@@ -61,12 +65,40 @@ class DefaultFormComponent(
     @OptIn(ExperimentalCoroutinesApi::class)
     override val state: StateFlow<FormStore.State> = store.stateFlow
 
+    override fun onProgramSelect(code: String) {
+        store.accept(FormStore.Intent.SelectProgram(code))
+    }
+
+    override fun onTrainingDaySelect(number: Int) {
+        store.accept(FormStore.Intent.SelectTrainingDay(number))
+    }
+
+    override fun onCompletedChange(isCompleted: Boolean) {
+        store.accept(FormStore.Intent.UpdateCompleted(isCompleted))
+    }
+
     override fun onMaxCapacitySetsChange(value: Int) {
         store.accept(FormStore.Intent.UpdateMaxCapacitySets(value))
     }
 
     override fun onOverallDifficultyChange(value: Int) {
         store.accept(FormStore.Intent.UpdateOverallDifficulty(value))
+    }
+
+    override fun onDurationChange(minutes: Int) {
+        store.accept(FormStore.Intent.UpdateDuration(minutes))
+    }
+
+    override fun onReadinessChange(value: Int) {
+        store.accept(FormStore.Intent.UpdateReadiness(value))
+    }
+
+    override fun onFatigueChange(value: Int) {
+        store.accept(FormStore.Intent.UpdateFatigue(value))
+    }
+
+    override fun onMuscleGroupFatigueChange(group: TrainingGroup, value: Int) {
+        store.accept(FormStore.Intent.UpdateMuscleGroupFatigue(group, value))
     }
     
     override fun onSaveClick() {

@@ -1,10 +1,12 @@
 package com.fungorn.trainingcapacity.feature.dashboard.domain.usecase
 
 import com.fungorn.trainingcapacity.core.common.formatMillisToDate
+import com.fungorn.trainingcapacity.core.domain.model.SessionStatistics
 import com.fungorn.trainingcapacity.core.domain.model.TrainingEntry
 import com.fungorn.trainingcapacity.core.domain.model.TrainingMesocycle
 import com.fungorn.trainingcapacity.core.domain.repository.EntryRepository
 import com.fungorn.trainingcapacity.core.domain.repository.MesocycleRepository
+import com.fungorn.trainingcapacity.core.domain.statistics.MesocycleStatisticsCalculator
 import com.fungorn.trainingcapacity.feature.dashboard.domain.model.DashboardData
 import com.fungorn.trainingcapacity.feature.dashboard.domain.model.DifficultyGraphEntry
 import kotlinx.coroutines.flow.Flow
@@ -24,8 +26,8 @@ class GetDashboardDataUseCase(
         mesocycle: TrainingMesocycle,
         entries: List<TrainingEntry>
     ): DashboardData {
-        val mesocycleEntries = entries.filter { it.mesocycleId == mesocycle.id }
-            .sortedBy(TrainingEntry::createdAt)
+        val statistics = MesocycleStatisticsCalculator.calculate(mesocycle, entries)
+        val mesocycleEntries = statistics.entries
 
         val currentProgram = mesocycle.program
 
@@ -38,16 +40,15 @@ class GetDashboardDataUseCase(
             0
         }.coerceIn(0, mesocycle.weeks.size - 1)
 
-        val completedDaysThisWeek = completedTrainingDays % trainingDaysPerWeek
+        val completedDaysThisWeek = completedTrainingDays % trainingDaysPerWeek.coerceAtLeast(1)
         val nextTrainingDayNumber = completedDaysThisWeek + 1
 
         val currentMesocycleWeek = mesocycle.weeks.getOrNull(currentWeekIndex)
-        val currentWeekEntries = mesocycleEntries.filter {
-            val entryWeekIndex = mesocycleEntries.indexOf(it) / trainingDaysPerWeek
-            entryWeekIndex == currentWeekIndex
-        }
+        val currentWeekSessions = statistics.weeks.getOrNull(currentWeekIndex)?.sessions
+            ?: SessionStatistics.EMPTY
 
         val graphEntries = mesocycleEntries.asSequence()
+            .filter(TrainingEntry::isCompleted)
             .map {
                 DifficultyGraphEntry(
                     formattedDate = formatMillisToDate(it.createdAt),
@@ -66,20 +67,19 @@ class GetDashboardDataUseCase(
             isFirstWeek = currentWeekIndex == 0,
             isLastWeek = currentWeekIndex == mesocycle.weeks.size - 1,
             totalWeeksCount = mesocycle.weeks.size,
-            spentMesocycleMaximumCapacitySets = mesocycleEntries.sumOf(
-                TrainingEntry::spentMaximumCapacitySets
-            ),
+            spentMesocycleMaximumCapacitySets = statistics.sessions.spentMaximumCapacitySets,
             totalMesocycleMaximumCapacitySets = mesocycle.weeks.sumOf(
                 TrainingMesocycle.Week::maximumCapacityUpperEnd
             ),
             currentProgramName = currentProgram.code,
             currentTrainingDayNumber = nextTrainingDayNumber,
             totalTrainingDaysCount = currentProgram.trainingDaysCount,
-            spentMaximumCapacitySetsThisWeek = currentWeekEntries.sumOf(
-                TrainingEntry::spentMaximumCapacitySets
-            ),
+            spentMaximumCapacitySetsThisWeek = currentWeekSessions.spentMaximumCapacitySets,
             totalMaximumCapacitySetsThisWeek = currentMesocycleWeek?.maximumCapacityUpperEnd ?: 0,
-            difficultyGraphEntries = graphEntries
+            difficultyGraphEntries = graphEntries,
+            mesocycleSessions = statistics.sessions,
+            currentWeekSessions = currentWeekSessions,
+            focusGroups = mesocycle.focusGroups,
         )
     }
 }

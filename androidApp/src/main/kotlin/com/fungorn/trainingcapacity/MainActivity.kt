@@ -9,9 +9,10 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.fungorn.trainingcapacity.core.common.DispatcherProvider
 import com.fungorn.trainingcapacity.core.domain.usecase.AddEntryUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.CreateProgramUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.ExportMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetAllProgramsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetEntryByIdUseCase
-import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleByIdUseCase
+import com.fungorn.trainingcapacity.core.domain.usecase.GetMesocycleStatisticsUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetProgramByCodeUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.GetSelectedProgramUseCase
 import com.fungorn.trainingcapacity.core.domain.usecase.SelectProgramUseCase
@@ -31,7 +32,8 @@ class MainActivity : ComponentActivity() {
     private val getEntryByIdUseCase: GetEntryByIdUseCase by inject()
     private val getCurrentTrainingContextUseCase: GetCurrentTrainingContextUseCase by inject()
     private val getMesocyclesDataUseCase: GetMesocyclesDataUseCase by inject()
-    private val getMesocycleByIdUseCase: GetMesocycleByIdUseCase by inject()
+    private val getMesocycleStatisticsUseCase: GetMesocycleStatisticsUseCase by inject()
+    private val exportMesocycleStatisticsUseCase: ExportMesocycleStatisticsUseCase by inject()
     private val startNewMesocycleUseCase: StartNewMesocycleUseCase by inject()
     private val getAllProgramsUseCase: GetAllProgramsUseCase by inject()
     private val getSelectedProgramUseCase: GetSelectedProgramUseCase by inject()
@@ -52,7 +54,8 @@ class MainActivity : ComponentActivity() {
             getEntryByIdUseCase = getEntryByIdUseCase,
             getCurrentTrainingContextUseCase = getCurrentTrainingContextUseCase,
             getMesocyclesDataUseCase = getMesocyclesDataUseCase,
-            getMesocycleByIdUseCase = getMesocycleByIdUseCase,
+            getMesocycleStatisticsUseCase = getMesocycleStatisticsUseCase,
+            exportMesocycleStatisticsUseCase = exportMesocycleStatisticsUseCase,
             startNewMesocycleUseCase = startNewMesocycleUseCase,
             getAllProgramsUseCase = getAllProgramsUseCase,
             getSelectedProgramUseCase = getSelectedProgramUseCase,

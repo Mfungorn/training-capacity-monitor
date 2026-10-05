@@ -200,6 +200,7 @@ private fun TrainingDayCard(
                 ) {
                     TrainingGroup.entries.forEach { group ->
                         val isSelected = group in day.muscleGroups
+                        if (group.isLegacy && !isSelected) return@forEach
 
                         when {
                             isEditable -> {
@@ -241,13 +242,3 @@ private fun TrainingDayCard(
         }
     }
 }
-
-private val TrainingGroup.displayName: String
-    get() = when (this) {
-        TrainingGroup.CHEST -> "Chest"
-        TrainingGroup.BACK -> "Back"
-        TrainingGroup.DELTS -> "Delts"
-        TrainingGroup.BICEPS -> "Biceps"
-        TrainingGroup.TRICEPS -> "Triceps"
-        TrainingGroup.LEGS -> "Legs"
-    }

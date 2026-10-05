@@ -10,6 +10,11 @@ data class TrainingEntryDto(
     val spentMaximumCapacitySets: Int,
     val overallDifficulty: Int,
     val createdAt: Long,
+    val isCompleted: Boolean = true,
+    val durationMinutes: Int = 0,
+    val readiness: Int? = null,
+    val fatigue: Int? = null,
+    val muscleGroupFatigue: Map<String, Int> = emptyMap(),
 )
 
 @Serializable

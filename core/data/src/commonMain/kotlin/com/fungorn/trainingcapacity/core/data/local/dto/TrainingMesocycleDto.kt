@@ -9,6 +9,7 @@ data class TrainingMesocycleDto(
     val weeks: List<WeekDto> = emptyList(),
     val isSelected: Boolean = false,
     val startedAt: Long,
+    val groupPriorities: Map<String, String> = emptyMap(),
 ) {
     @Serializable
     data class WeekDto(

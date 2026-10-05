@@ -19,18 +19,10 @@ class TrainingProgramsLocalDataSource(
     companion object {
         private val PROGRAMS_KEY = stringPreferencesKey("training_programs")
         private val SELECTED_PROGRAM_KEY = stringPreferencesKey("selected_program_code")
-        private const val DEFAULT_PROGRAM_CODE = "DL0"
+        private const val DEFAULT_PROGRAM_CODE = "UL1"
     }
 
     private val builtInPrograms = listOf(
-        TrainingProgramDto(
-            code = "DL0",
-            name = "Deload",
-            trainingDays = listOf(
-                TrainingDayDto(id = "DL0_D1", name = "Deload day", muscleGroups = emptyList())
-            ),
-            isBuiltIn = true
-        ),
         TrainingProgramDto(
             code = "UL1",
             name = "Upper-Lower",
@@ -38,22 +30,79 @@ class TrainingProgramsLocalDataSource(
                 TrainingDayDto(
                     id = "UL1_D1",
                     name = "Day #1",
-                    muscleGroups = listOf("CHEST", "BACK", "DELTS", "BICEPS", "TRICEPS")
+                    muscleGroups = listOf(
+                        "CHEST",
+                        "BACK",
+                        "FRONT_DELTS",
+                        "SIDE_DELTS",
+                        "REAR_DELTS",
+                        "BICEPS",
+                        "TRICEPS"
+                    )
                 ),
                 TrainingDayDto(
                     id = "UL1_D2",
                     name = "Day #2",
-                    muscleGroups = listOf("LEGS", "DELTS", "BICEPS", "TRICEPS")
+                    muscleGroups = listOf(
+                        "QUADS",
+                        "HAMSTRINGS",
+                        "GLUTES",
+                        "CALVES",
+                        "SIDE_DELTS",
+                        "BICEPS",
+                        "TRICEPS"
+                    )
                 ),
                 TrainingDayDto(
                     id = "UL1_D3",
                     name = "Day #3",
-                    muscleGroups = listOf("CHEST", "BACK", "DELTS", "BICEPS", "TRICEPS")
+                    muscleGroups = listOf(
+                        "CHEST",
+                        "BACK",
+                        "FRONT_DELTS",
+                        "SIDE_DELTS",
+                        "REAR_DELTS",
+                        "BICEPS",
+                        "TRICEPS"
+                    )
                 ),
                 TrainingDayDto(
                     id = "UL1_D4",
                     name = "Day #4",
-                    muscleGroups = listOf("LEGS", "DELTS", "BICEPS", "TRICEPS")
+                    muscleGroups = listOf(
+                        "QUADS",
+                        "HAMSTRINGS",
+                        "GLUTES",
+                        "CALVES",
+                        "SIDE_DELTS",
+                        "BICEPS",
+                        "TRICEPS"
+                    )
+                )
+            ),
+            isBuiltIn = true
+        ),
+        TrainingProgramDto(
+            code = "BR0",
+            name = "Bro-split",
+            trainingDays = listOf(
+                TrainingDayDto(
+                    id = "BR0_D1",
+                    name = "Chest + Biceps",
+                    muscleGroups = listOf("CHEST", "BICEPS")
+                ),
+                TrainingDayDto(
+                    id = "BR0_D2",
+                    name = "Back + Triceps",
+                    muscleGroups = listOf("BACK", "TRICEPS")
+                ),
+                TrainingDayDto(
+                    id = "BR0_D3",
+                    name = "Legs + Delts",
+                    muscleGroups = listOf(
+                        "QUADS", "HAMSTRINGS", "GLUTES", "CALVES",
+                        "FRONT_DELTS", "SIDE_DELTS", "REAR_DELTS"
+                    )
                 )
             ),
             isBuiltIn = true
