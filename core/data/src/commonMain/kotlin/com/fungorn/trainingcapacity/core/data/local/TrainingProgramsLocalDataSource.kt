@@ -19,7 +19,7 @@ class TrainingProgramsLocalDataSource(
     companion object {
         private val PROGRAMS_KEY = stringPreferencesKey("training_programs")
         private val SELECTED_PROGRAM_KEY = stringPreferencesKey("selected_program_code")
-        private const val DEFAULT_PROGRAM_CODE = "UL1"
+        private const val DEFAULT_PROGRAM_CODE = "BR0"
     }
 
     private val builtInPrograms = listOf(
